@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Pantry Cauldron — Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fraunces:ital,wght@0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream:    #F7F3EE;
+    --card:     #FFFFFF;
+    --orange:   #FF6B35;
+    --dark:     #1A1A2E;
+    --muted:    #9A9A9A;
+    --border:   #EFE9E0;
+    --shadow:   0 4px 24px rgba(0,0,0,0.07);
+    --font:     'Nunito', sans-serif;
+    --serif:    'Fraunces', serif;
+  }
+
+  html, body {
+    height: 100%;
+    background: #E8E0D5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font);
+  }
+
+  /* ── Phone shell ── */
+  .phone-shell {
+    width: 390px;
+    height: 844px;
+    background: var(--cream);
+    border-radius: 48px;
+    box-shadow:
+      0 0 0 10px #1a1a1a,
+      0 0 0 12px #2a2a2a,
+      0 40px 80px rgba(0,0,0,0.45);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* notch */
+  .phone-shell::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 30px;
+    background: #1a1a1a;
+    border-radius: 0 0 20px 20px;
+    z-index: 99;
+  }
+
+  /* status bar */
+  .status-bar {
+    height: 44px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 28px 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--dark);
+    flex-shrink: 0;
+  }
+
+  /* ── Scroll area ── */
+  .scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    padding-bottom: 80px;
+  }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  /* ── Header ── */
+  .app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px 4px;
+  }
+  .app-title {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--dark);
+    letter-spacing: -0.5px;
+  }
+  .bell-btn {
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 38px; height: 38px;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s;
+  }
+  .bell-btn:hover { transform: scale(1.08); }
+
+  /* ── Wheel ── */
+  .wheel-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 16px 0 8px;
+    position: relative;
+  }
+
+  #wheel-svg { cursor: pointer; }
+
+  .arc-path {
+    transition: opacity 0.2s, filter 0.2s;
+    cursor: pointer;
+  }
+  .arc-path:hover { opacity: 1 !important; filter: brightness(1.08); }
+  .arc-path.active { filter: drop-shadow(0 0 8px rgba(0,0,0,0.25)); }
+
+  /* Cauldron center */
+  .cauldron-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 108px; height: 108px;
+    background: white;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    box-shadow: 0 0 0 4px white, 0 0 28px rgba(255,107,53,0.35);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.3s;
+    user-select: none;
+  }
+  .cauldron-center:hover { transform: translate(-50%, -50%) scale(1.05); }
+  .cauldron-center.bubbling {
+    animation: cauldronPulse 0.8s ease-in-out infinite alternate;
+  }
+  @keyframes cauldronPulse {
+    from { box-shadow: 0 0 0 4px white, 0 0 20px rgba(255,107,53,0.3); }
+    to   { box-shadow: 0 0 0 4px white, 0 0 40px rgba(255,107,53,0.7); }
+  }
+  .cauldron-emoji { font-size: 36px; line-height: 1; }
+  .cauldron-label {
+    font-size: 10px; font-weight: 900;
+    color: var(--dark); text-align: center;
+    line-height: 1.3; margin-top: 3px;
+  }
+  .cauldron-bubbles {
+    display: flex; gap: 3px; margin-top: 3px;
+  }
+  .bubble {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--orange);
+    animation: bubbleUp 0.8s ease-in-out infinite;
+  }
+  .bubble:nth-child(2) { animation-delay: 0.2s; }
+  .bubble:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bubbleUp {
+    0%, 100% { transform: translateY(0); opacity: 1; }
+    50%       { transform: translateY(-5px); opacity: 0.5; }
+  }
+
+  /* ── Category strip (mobile scroll) ── */
+  .cat-strip {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 4px 20px 10px;
+    scrollbar-width: none;
+  }
+  .cat-strip::-webkit-scrollbar { display: none; }
+  .cat-chip {
+    flex-shrink: 0;
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 12px; font-weight: 700;
+    color: white;
+    cursor: pointer;
+    opacity: 0.72;
+    transition: opacity 0.2s, transform 0.15s;
+    border: none;
+  }
+  .cat-chip:hover { opacity: 0.9; transform: scale(1.03); }
+  .cat-chip.active { opacity: 1; transform: scale(1.05); box-shadow: 0 3px 12px rgba(0,0,0,0.18); }
+
+  /* ── Pantry card ── */
+  .pantry-card {
+    margin: 0 20px 14px;
+    background: white;
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .pantry-card-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    border-radius: 20px 20px 0 0;
+    transition: background 0.3s;
+  }
+  .pantry-card-title {
+    font-size: 13px; font-weight: 800;
+    color: var(--dark); margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .pill-grid {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .pill {
+    display: flex; align-items: center; gap: 5px;
+    background: #FFF8F0;
+    border: 1.5px solid #FFE5CC;
+    border-radius: 20px;
+    padding: 6px 10px;
+    font-size: 12px; font-weight: 600;
+    color: var(--dark);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .pill:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+  .pill.empty { background: #F5F5F5; border-color: #E8E8E8; color: #BBB; }
+  .pill-check {
+    width: 15px; height: 15px; border-radius: 50%;
+    background: #52B356;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: white; font-weight: 900;
+  }
+
+  /* ── Add item form ── */
+  .add-card {
+    margin: 0 20px 14px;
+    background: white;
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+  .add-card-title {
+    font-size: 14px; font-weight: 800;
+    color: var(--dark); margin-bottom: 12px;
+  }
+  .add-input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: var(--font);
+    color: var(--dark);
+    outline: none;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+  .add-input:focus { border-color: var(--orange); }
+  .add-row { display: flex; gap: 10px; }
+  .add-qty { width: 80px; }
+  .add-btn {
+    flex: 1;
+    border: none; border-radius: 12px;
+    color: white; font-weight: 800; font-size: 14px;
+    font-family: var(--font);
+    cursor: pointer;
+    padding: 10px 0;
+    transition: filter 0.15s, transform 0.1s;
+  }
+  .add-btn:hover { filter: brightness(1.08); transform: scale(1.02); }
+  .add-btn:active { transform: scale(0.97); }
+
+  /* ── Recipes ── */
+  .recipes-section { margin: 0 20px 14px; }
+  .recipes-title {
+    font-size: 16px; font-weight: 900;
+    color: var(--dark); margin-bottom: 12px;
+    font-family: var(--serif);
+  }
+  .recipe-card {
+    display: flex;
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .recipe-card:hover { transform: translateY(-2px); }
+  .recipe-img {
+    width: 88px; height: 88px;
+    object-fit: cover; flex-shrink: 0;
+  }
+  .recipe-info { flex: 1; padding: 12px; }
+  .recipe-title { font-size: 13px; font-weight: 800; color: var(--dark); margin-bottom: 3px; }
+  .recipe-used  { font-size: 11px; color: #777; margin-bottom: 2px; }
+  .recipe-miss  { font-size: 11px; color: var(--orange); margin-bottom: 6px; }
+  .recipe-cta   { font-size: 11px; font-weight: 800; color: var(--orange); }
+
+  /* loading */
+  .loading-box { text-align: center; padding: 28px 20px; }
+  .loading-box p { margin-top: 10px; font-weight: 700; color: var(--orange); font-size: 14px; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid #FFE5CC;
+    border-top-color: var(--orange);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 72px;
+    background: white;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding-bottom: 8px;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
+  }
+  .nav-item {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 2px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 12px;
+    transition: background 0.15s;
+  }
+  .nav-item:hover { background: #FFF0E8; }
+  .nav-item.active .nav-label { color: var(--orange); font-weight: 800; }
+  .nav-emoji { font-size: 20px; }
+  .nav-label { font-size: 10px; color: var(--muted); font-weight: 600; }
+
+  /* entry animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim-1 { animation: fadeUp 0.4s ease both; }
+  .anim-2 { animation: fadeUp 0.4s 0.1s ease both; }
+  .anim-3 { animation: fadeUp 0.4s 0.2s ease both; }
+  .anim-4 { animation: fadeUp 0.4s 0.3s ease both; }
+  .anim-5 { animation: fadeUp 0.4s 0.4s ease both; }
+</style>
+</head>
+<body>
+
+<div class="phone-shell">
+  <div class="status-bar">
+    <span>10:09</span>
+    <span>▐▐▐ 100% 🔋</span>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- Header -->
+    <div class="app-header anim-1">
+      <span class="app-title">Pantry Cauldron</span>
+      <button class="bell-btn">🔔</button>
+    </div>
+
+    <!-- Wheel -->
+    <div class="wheel-wrapper anim-2">
+      <svg id="wheel-svg" width="320" height="320" viewBox="0 0 320 320"></svg>
+      <div class="cauldron-center" id="cauldron" onclick="triggerCauldron()">
+        <span class="cauldron-emoji">🪄</span>
+        <span class="cauldron-label" id="cauldron-label">Suggest<br>Recipes</span>
+        <div class="cauldron-bubbles" id="bubbles" style="display:none">
+          <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category strip -->
+    <div class="cat-strip anim-3" id="cat-strip"></div>
+
+    <!-- Pantry card -->
+    <div class="pantry-card anim-4">
+      <div class="pantry-card-bar" id="cat-bar"></div>
+      <div class="pantry-card-title" id="cat-title"></div>
+      <div class="pill-grid" id="pill-grid"></div>
+    </div>
+
+    <!-- Add item -->
+    <div class="add-card anim-5">
+      <div class="add-card-title">➕ Add to Pantry</div>
+      <input class="add-input" id="item-name" placeholder="Item name (e.g. Strawberries)" />
+      <div class="add-row">
+        <input class="add-input add-qty" id="item-qty" placeholder="Qty" type="number" value="1" />
+        <button class="add-btn" id="add-btn" onclick="addItem()">Add</button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-box" id="loading-box" style="display:none">
+      <div class="spinner"></div>
+      <p>The cauldron is bubbling... ✨</p>
+    </div>
+
+    <!-- Recipes -->
+    <div class="recipes-section" id="recipes-section" style="display:none">
+      <div class="recipes-title">✨ Cauldron Suggestions</div>
+      <div id="recipes-list"></div>
+    </div>
+
+  </div><!-- /scroll -->
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="setTab(this)">
+      <span class="nav-emoji">🏠</span><span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item" onclick="setTab(this)">
+      <span class="nav-emoji">🥘</span><span class="nav-label">Pantry</span>
+    </div>
+    <div class="nav-item" onclick="setTab(this)">
+      <span class="nav-emoji">📖</span><span class="nav-label">Recipes</span>
+    </div>
+    <div class="nav-item" onclick="setTab(this)">
+      <span class="nav-emoji">⏰</span><span class="nav-label">Reminders</span>
+    </div>
+    <div class="nav-item" onclick="setTab(this)">
+      <span class="nav-emoji">🛒</span><span class="nav-label">List</span>
+    </div>
+  </div>
+</div><!-- /phone-shell -->
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  { label:'Fruits',       emoji:'🍎', color:'#F5C842', startDeg:-90, endDeg:-30 },
+  { label:'Dairy & Fish', emoji:'🐟', color:'#4BAEE8', startDeg:-30, endDeg: 30 },
+  { label:'Spices',       emoji:'🌶️', color:'#F4883E', startDeg: 30, endDeg: 90 },
+  { label:'Essentials',   emoji:'🥫', color:'#A07850', startDeg: 90, endDeg:150 },
+  { label:'Other',        emoji:'🧴', color:'#9B6EC8', startDeg:150, endDeg:210 },
+  { label:'Vegetables',   emoji:'🥦', color:'#52B356', startDeg:210, endDeg:270 },
+  { label:'Meat',         emoji:'🥩', color:'#E05252', startDeg:270, endDeg:330 },
+];
+
+const ITEM_EMOJIS = {
+  'Red Apples':'🍎','Green Apples':'🍏','Lemons':'🍋','Bananas':'🍌',
+  'Oranges':'🍊','Grapes':'🍇','Cherry Tomatoes':'🍅','Pears':'🍐',
+  'Chicken':'🍗','Salmon':'🐟','Cheddar':'🧀','Milk':'🥛',
+  'Broccoli':'🥦','Spinach':'🌿','Carrots':'🥕',
+};
+
+let pantry = [
+  { name:'Red Apples',      category:'Fruits',     qty:4,  unit:'pieces', inStock:true },
+  { name:'Green Apples',    category:'Fruits',     qty:3,  unit:'pieces', inStock:true },
+  { name:'Lemons',          category:'Fruits',     qty:2,  unit:'pieces', inStock:true },
+  { name:'Bananas',         category:'Fruits',     qty:5,  unit:'pieces', inStock:true },
+  { name:'Oranges',         category:'Fruits',     qty:6,  unit:'pieces', inStock:true },
+  { name:'Grapes',          category:'Fruits',     qty:1,  unit:'bunch',  inStock:false },
+  { name:'Cherry Tomatoes', category:'Vegetables', qty:20, unit:'pieces', inStock:false },
+  { name:'Pears',           category:'Fruits',     qty:3,  unit:'pieces', inStock:false },
+];
+
+let selectedCat = 'Fruits';
+let recipes = [];
+
+// ── SVG arc helpers ───────────────────────────────────────────────────────────
+const CX = 160, CY = 160, OR = 154, IR = 60, GAP = 3;
+const NS = 'http://www.w3.org/2000/svg';
+
+function polar(cx, cy, r, deg) {
+  const rad = (deg - 90) * Math.PI / 180;
+  return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+}
+function arcPath(s, e) {
+  const [x1,y1] = polar(CX,CY,OR, s+GAP);
+  const [x2,y2] = polar(CX,CY,OR, e-GAP);
+  const [x3,y3] = polar(CX,CY,IR, e-GAP);
+  const [x4,y4] = polar(CX,CY,IR, s+GAP);
+  const lg = (e-s) > 180 ? 1 : 0;
+  return `M${x1} ${y1} A${OR} ${OR} 0 ${lg} 1 ${x2} ${y2} L${x3} ${y3} A${IR} ${IR} 0 ${lg} 0 ${x4} ${y4}Z`;
+}
+function midPos(s, e) {
+  const mid = (s+e)/2, r = (OR+IR)/2;
+  return polar(CX, CY, r, mid);
+}
+
+// ── Draw wheel ────────────────────────────────────────────────────────────────
+function drawWheel() {
+  const svg = document.getElementById('wheel-svg');
+  svg.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const isActive = cat.label === selectedCat;
+    const g = document.createElementNS(NS,'g');
+
+    const path = document.createElementNS(NS,'path');
+    path.setAttribute('d', arcPath(cat.startDeg, cat.endDeg));
+    path.setAttribute('fill', cat.color);
+    path.setAttribute('opacity', isActive ? '1' : '0.78');
+    path.setAttribute('stroke', 'white');
+    path.setAttribute('stroke-width', isActive ? '3' : '1.5');
+    path.setAttribute('class', 'arc-path' + (isActive ? ' active' : ''));
+    path.style.transition = 'all 0.25s';
+
+    const [lx, ly] = midPos(cat.startDeg, cat.endDeg);
+
+    const te = document.createElementNS(NS,'text');
+    te.setAttribute('x', lx); te.setAttribute('y', ly - 11);
+    te.setAttribute('text-anchor','middle');
+    te.setAttribute('dominant-baseline','middle');
+    te.setAttribute('font-size', isActive ? '22' : '18');
+    te.textContent = cat.emoji;
+
+    const tl = document.createElementNS(NS,'text');
+    tl.setAttribute('x', lx); tl.setAttribute('y', ly + 12);
+    tl.setAttribute('text-anchor','middle');
+    tl.setAttribute('font-size', isActive ? '9.5' : '8.5');
+    tl.setAttribute('font-weight', isActive ? 'bold' : 'normal');
+    tl.setAttribute('font-family','Nunito, sans-serif');
+    tl.setAttribute('fill','white');
+    tl.textContent = cat.label;
+
+    g.appendChild(path); g.appendChild(te); g.appendChild(tl);
+    g.style.cursor = 'pointer';
+    g.addEventListener('click', () => { selectedCat = cat.label; renderAll(); });
+    svg.appendChild(g);
+  });
+
+  // inner white circle
+  const circle = document.createElementNS(NS,'circle');
+  circle.setAttribute('cx',CX); circle.setAttribute('cy',CY);
+  circle.setAttribute('r', IR+2); circle.setAttribute('fill','white');
+  svg.appendChild(circle);
+}
+
+// ── Category strip ────────────────────────────────────────────────────────────
+function renderStrip() {
+  const strip = document.getElementById('cat-strip');
+  strip.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-chip' + (cat.label === selectedCat ? ' active' : '');
+    btn.style.background = cat.color;
+    btn.textContent = cat.emoji + ' ' + cat.label;
+    btn.onclick = () => { selectedCat = cat.label; renderAll(); };
+    strip.appendChild(btn);
+  });
+}
+
+// ── Pantry pills ──────────────────────────────────────────────────────────────
+function renderPantry() {
+  const cat  = CATEGORIES.find(c => c.label === selectedCat);
+  const bar  = document.getElementById('cat-bar');
+  const title= document.getElementById('cat-title');
+  const grid = document.getElementById('pill-grid');
+  const addBtn = document.getElementById('add-btn');
+
+  bar.style.background = cat.color;
+  addBtn.style.background = cat.color;
+  title.textContent = selectedCat;
+
+  const items = pantry.filter(i => i.category === selectedCat);
+  grid.innerHTML = '';
+
+  if (!items.length) {
+    grid.innerHTML = '<span style="color:#bbb;font-style:italic;font-size:13px">No items yet — add one below!</span>';
+    return;
+  }
+  items.forEach(item => {
+    const pill = document.createElement('div');
+    pill.className = 'pill' + (item.inStock ? '' : ' empty');
+    pill.innerHTML = `
+      <span>${ITEM_EMOJIS[item.name] || '🧺'}</span>
+      <span>${item.name}</span>
+      ${item.inStock ? '<span class="pill-check">✓</span>' : ''}
+    `;
+    grid.appendChild(pill);
+  });
+}
+
+// ── Cauldron ──────────────────────────────────────────────────────────────────
+function triggerCauldron() {
+  const cauldron = document.getElementById('cauldron');
+  const label    = document.getElementById('cauldron-label');
+  const bubbles  = document.getElementById('bubbles');
+  const loadBox  = document.getElementById('loading-box');
+  const recSec   = document.getElementById('recipes-section');
+
+  cauldron.classList.add('bubbling');
+  label.textContent = 'Bubbling...';
+  bubbles.style.display = 'flex';
+  loadBox.style.display = 'block';
+  recSec.style.display  = 'none';
+
+  setTimeout(() => {
+    cauldron.classList.remove('bubbling');
+    label.innerHTML = 'Suggest<br>Recipes';
+    bubbles.style.display = 'none';
+    loadBox.style.display = 'none';
+
+    recipes = [
+      { title:'Fresh Fruit Salad',    img:'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=200&q=80', used:['Red Apples','Bananas','Lemons'],  miss:['Honey','Mint'] },
+      { title:'Green Apple Smoothie', img:'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=200&q=80', used:['Green Apples','Bananas'],         miss:['Yogurt','Spinach'] },
+      { title:'Citrus Chia Pudding',  img:'https://images.unsplash.com/photo-1541533848490-bc8115cd6522?w=200&q=80', used:['Oranges','Lemons'],               miss:['Chia Seeds','Oat Milk'] },
+    ];
+    renderRecipes();
+  }, 2600);
+}
+
+function renderRecipes() {
+  const sec  = document.getElementById('recipes-section');
+  const list = document.getElementById('recipes-list');
+  sec.style.display = 'block';
+  list.innerHTML = '';
+  recipes.forEach(r => {
+    list.innerHTML += `
+      <div class="recipe-card">
+        <img class="recipe-img" src="${r.img}" alt="${r.title}" loading="lazy" />
+        <div class="recipe-info">
+          <div class="recipe-title">${r.title}</div>
+          <div class="recipe-used">Using: ${r.used.join(', ')}</div>
+          <div class="recipe-miss">Need: ${r.miss.join(', ')}</div>
+          <div class="recipe-cta">🔥 Cook This →</div>
+        </div>
+      </div>`;
+  });
+  sec.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ── Add item ──────────────────────────────────────────────────────────────────
+function addItem() {
+  const name = document.getElementById('item-name').value.trim();
+  const qty  = parseInt(document.getElementById('item-qty').value) || 1;
+  if (!name) { document.getElementById('item-name').focus(); return; }
+  pantry.push({ name, category: selectedCat, qty, unit:'piece', inStock:true });
+  document.getElementById('item-name').value = '';
+  document.getElementById('item-qty').value  = '1';
+  renderPantry();
+}
+document.getElementById('item-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addItem();
+});
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function setTab(el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── Render all ────────────────────────────────────────────────────────────────
+function renderAll() {
+  drawWheel();
+  renderStrip();
+  renderPantry();
+}
+
+renderAll();
+</script>
+</body>
+</html>
