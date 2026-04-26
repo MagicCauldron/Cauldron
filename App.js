@@ -1,5 +1,4 @@
 // App.js - Pantry Cauldron Main Application
-// Install dependencies: npm install @supabase/supabase-js react-native-vector-icons
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -10,7 +9,6 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
-  FlatList,
   StyleSheet,
   Alert,
   ActivityIndicator,
@@ -30,7 +28,7 @@ export default function App() {
 
   // Categories from screenshot
   const categories = [
-    'All', 'Fruits', 'Dairy & Fish', 'Meat', 
+    'All', 'Fruits', 'Dairy & Fish', 'Meat',
     'Spices', 'Vegetables', 'Essentials', 'Other'
   ];
 
@@ -64,17 +62,17 @@ export default function App() {
 
   const loadPantry = async () => {
     if (!user) return;
-    
+
     const { data, error } = await supabase
       .from('pantry_items')
       .select('*')
       .eq('user_id', user.id);
-    
+
     if (data && data.length > 0) {
       setPantryItems(data);
     } else {
       // Load sample data for first-time users
-      setPantryItems(samplePantry.map(item => ({ ...item, user_id: user.id })));
+      setPantryItems(samplePantry.map(item => ({ ...item, user_id: user?.id })));
     }
   };
 
@@ -85,12 +83,12 @@ export default function App() {
     }
 
     const newItem = {
-      user_id: user.id,
+      user_id: user?.id,
       name: newItemName,
       category: selectedCategory === 'All' ? 'Other' : selectedCategory,
       quantity: parseInt(newItemQuantity) || 1,
       unit: 'piece',
-      shelf_life_days: 7, // Default 7 days
+      shelf_life_days: 7,
     };
 
     const { data, error } = await supabase
@@ -110,9 +108,7 @@ export default function App() {
   const cookCauldron = async () => {
     setCauldronBubbling(true);
     setLoading(true);
-    
-    // Simulate API call to Spoonacular
-    // In production: fetch from https://api.spoonacular.com/recipes/findByIngredients
+
     setTimeout(() => {
       const mockRecipes = [
         {
@@ -137,11 +133,11 @@ export default function App() {
           missedIngredients: ['Salt', 'Pepper'],
         },
       ];
-      
+
       setRecipes(mockRecipes);
       setCauldronBubbling(false);
       setLoading(false);
-      
+
       Alert.alert('✨ Cauldron Ready!', 'I found some magical recipes using your ingredients!');
     }, 2000);
   };
@@ -152,25 +148,24 @@ export default function App() {
       `Ready to make ${recipe.title}? I'll subtract the ingredients from your pantry!`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
+        {
           text: 'Yes, Cook It!',
           onPress: async () => {
-            // Convert ingredients to JSON format for the DB function
             const ingredientsUsed = recipe.usedIngredients.map(name => ({
               name: name,
               quantity: 1,
               unit: 'piece'
             }));
-            
+
             const { data, error } = await supabase.rpc('cook_recipe', {
               p_recipe_id: recipe.id.toString(),
               p_recipe_title: recipe.title,
               p_ingredients: ingredientsUsed
             });
-            
+
             if (!error) {
               Alert.alert('🎉 Delicious!', 'Recipe logged. Your pantry has been updated!');
-              loadPantry(); // Refresh pantry
+              loadPantry();
             }
           }
         }
@@ -186,7 +181,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        
+
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Pantry Cauldron</Text>
@@ -194,7 +189,7 @@ export default function App() {
         </View>
 
         {/* Cauldron Button */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.cauldronButton, cauldronBubbling && styles.cauldronBubbling]}
           onPress={cookCauldron}
           disabled={loading}
@@ -269,8 +264,8 @@ export default function App() {
           <View style={styles.recipesSection}>
             <Text style={styles.sectionTitle}>✨ Cauldron Suggestions ✨</Text>
             {recipes.map(recipe => (
-              <TouchableOpacity 
-                key={recipe.id} 
+              <TouchableOpacity
+                key={recipe.id}
                 style={styles.recipeCard}
                 onPress={() => cookRecipe(recipe)}
               >
@@ -292,7 +287,7 @@ export default function App() {
           </View>
         )}
 
-        {/* Bottom Navigation (from screenshot) */}
+        {/* Bottom Navigation */}
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem}>
             <Text style={styles.navIcon}>🏠</Text>
@@ -334,7 +329,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#2D3436',
-    fontFamily: 'System',
   },
   subtitle: {
     fontSize: 14,
