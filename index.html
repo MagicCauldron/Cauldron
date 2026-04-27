@@ -570,39 +570,87 @@ function checkExpiry(){
 }
 
 // ── Cauldron ──────────────────────────────────────────────────────────────────
-function triggerCauldron(){
+const SPOONACULAR_KEY = '45ad654126f544a6b6d74230b8d281b1';
+
+async function triggerCauldron(){
   const el=document.getElementById('cauldron');
   const lbl=document.getElementById('cauldron-label');
   const bub=document.getElementById('bubbles');
   el.classList.add('bubbling'); lbl.textContent='Bubbling...'; bub.style.display='flex';
   document.getElementById('loading-box').style.display='block';
   document.getElementById('recipes-section').style.display='none';
-  setTimeout(()=>{
-    el.classList.remove('bubbling'); lbl.innerHTML='Suggest<br>Recipes'; bub.style.display='none';
-    document.getElementById('loading-box').style.display='none';
-    const used=pantry.slice(0,5).map(i=>i.name);
-    renderRecipes([
-      {title:'Fresh Fruit Salad',    img:'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=200&q=80',used:used.slice(0,3),miss:['Honey','Mint']},
-      {title:'Green Apple Smoothie', img:'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=200&q=80',used:used.slice(1,3),miss:['Yogurt','Spinach']},
-      {title:'Citrus Chia Pudding',  img:'https://images.unsplash.com/photo-1541533848490-bc8115cd6522?w=200&q=80',used:used.slice(3,5),miss:['Chia Seeds','Oat Milk']},
-    ]);
-  },2600);
+
+  try {
+    // Build ingredient list from pantry
+    const ingredients = pantry.map(i=>i.name).join(',+');
+    const url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredients)}&number=5&ranking=1&ignorePantry=true&apiKey=${SPOONACULAR_KEY}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if(!data || data.status === 'failure' || !data.length){
+      toast('⚠️ No recipes found — try adding more ingredients!');
+      stopBubbling(); return;
+    }
+
+    const recipes = data.map(r=>({
+      id:    r.id,
+      title: r.title,
+      img:   r.image,
+      used:  r.usedIngredients.map(i=>i.name),
+      miss:  r.missedIngredients.map(i=>i.name),
+    }));
+
+    stopBubbling();
+    renderRecipes(recipes);
+
+  } catch(err){
+    toast('⚠️ Could not reach recipe API. Check your connection.');
+    stopBubbling();
+  }
+}
+
+function stopBubbling(){
+  const el=document.getElementById('cauldron');
+  const lbl=document.getElementById('cauldron-label');
+  const bub=document.getElementById('bubbles');
+  el.classList.remove('bubbling');
+  lbl.innerHTML='Suggest<br>Recipes';
+  bub.style.display='none';
+  document.getElementById('loading-box').style.display='none';
 }
 
 function renderRecipes(list){
   const sec=document.getElementById('recipes-section');
   sec.style.display='block';
   document.getElementById('recipes-list').innerHTML=list.map(r=>`
-    <div class="recipe-card">
+    <div class="recipe-card" onclick="cookThis(${r.id}, '${r.title.replace(/'/g,"\\'")}', ${JSON.stringify(r.used)})">
       <img class="recipe-img" src="${r.img}" alt="${r.title}" loading="lazy"/>
       <div class="recipe-info">
         <div class="recipe-name">${r.title}</div>
         <div class="recipe-used">Using: ${r.used.join(', ')}</div>
-        <div class="recipe-miss">Need: ${r.miss.join(', ')}</div>
+        ${r.miss.length ? `<div class="recipe-miss">Need: ${r.miss.join(', ')}</div>` : '<div class="recipe-miss">You have everything! 🎉</div>'}
         <div class="recipe-cta">🔥 Cook This →</div>
       </div>
     </div>`).join('');
   sec.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function cookThis(recipeId, recipeTitle, usedIngredients){
+  const confirmed = confirm(`Cook "${recipeTitle}"?\n\nThis will subtract the ingredients from your pantry and log the meal.`);
+  if(!confirmed) return;
+
+  const ingredients = usedIngredients.map(name=>({name, quantity:1, unit:'piece'}));
+
+  const {error} = await sb.rpc('cook_recipe', {
+    p_recipe_id:   recipeId.toString(),
+    p_recipe_title: recipeTitle,
+    p_ingredients:  ingredients,
+  });
+
+  if(error){ toast('❌ '+error.message); return; }
+
+  toast('🍽️ Delicious! Pantry updated.');
+  loadPantry();
 }
 
 // ── SVG Wheel ─────────────────────────────────────────────────────────────────
