@@ -194,6 +194,8 @@ html,body{
 .expiry-card.urgent{background:#FFF0F0;border-color:#FFCCCC}
 .expiry-text{flex:1;font-size:12px;font-weight:600;color:var(--dark);line-height:1.5}
 .expiry-emoji{font-size:20px}
+.expiry-add-btn{background:var(--orange);border:none;border-radius:30px;padding:5px 12px;font-size:11px;font-weight:800;color:white;cursor:pointer;transition:filter .15s}
+.expiry-add-btn:hover{filter:brightness(1.1)}
 
 /* Add card */
 .add-card{margin:0 20px 14px;background:white;border-radius:20px;padding:16px;box-shadow:var(--shadow)}
@@ -209,6 +211,11 @@ html,body{
 .add-btn{flex:1;border:none;border-radius:12px;color:white;font-weight:800;font-size:14px;font-family:var(--font);cursor:pointer;padding:10px 0;transition:filter .15s,transform .1s}
 .add-btn:hover{filter:brightness(1.08)}
 
+/* Consumption nudge */
+.nudge-card{margin:0 20px 14px;background:#FFF0E8;border-radius:20px;padding:14px;border-left:8px solid var(--orange)}
+.nudge-msg{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px}
+.nudge-sub{font-size:11px;color:#A05A3A}
+
 /* Loading */
 .loading-box{text-align:center;padding:24px 20px}
 .loading-box p{margin-top:10px;font-weight:700;color:var(--orange);font-size:14px}
@@ -218,22 +225,36 @@ html,body{
 /* Recipes */
 .recipes-section{margin:0 20px 14px}
 .recipes-title{font-size:16px;font-weight:900;color:var(--dark);margin-bottom:12px;font-family:var(--serif)}
-.recipe-card{display:flex;background:white;border-radius:16px;overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s}
+.recipe-card{display:flex;background:white;border-radius:16px;overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);transition:transform .15s}
 .recipe-card:hover{transform:translateY(-2px)}
 .recipe-img{width:88px;height:88px;object-fit:cover;flex-shrink:0}
 .recipe-info{flex:1;padding:12px}
 .recipe-name{font-size:13px;font-weight:800;color:var(--dark);margin-bottom:3px}
 .recipe-used{font-size:11px;color:#777;margin-bottom:2px}
 .recipe-miss{font-size:11px;color:var(--orange);margin-bottom:6px}
-.recipe-cta{font-size:11px;font-weight:800;color:var(--orange)}
+.recipe-actions{display:flex;gap:10px;margin-top:6px}
+.recipe-cta{font-size:11px;font-weight:800;color:var(--orange);cursor:pointer}
+.shopping-add{font-size:11px;font-weight:700;background:#E8F0FE;padding:3px 8px;border-radius:30px;color:#1A73E8;cursor:pointer;display:inline-block}
+
+/* Shopping list tab */
+.shopping-container{margin:0 20px 20px}
+.shopping-item{background:white;border-radius:16px;padding:12px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow)}
+.shopping-name{font-weight:800;color:var(--dark)}
+.shopping-delete{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);transition:color .15s}
+.shopping-delete:hover{color:#E05252}
+.empty-shopping{text-align:center;color:var(--muted);padding:30px;font-style:italic}
 
 /* Bottom nav */
-.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:white;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding-bottom:8px;box-shadow:0 -4px 16px rgba(0,0,0,.05)}
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:white;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding-bottom:8px;box-shadow:0 -4px 16px rgba(0,0,0,.05);z-index:50}
 .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 10px;border-radius:12px;transition:background .15s}
 .nav-item:hover{background:#FFF0E8}
 .nav-item.active .nav-label{color:var(--orange);font-weight:800}
 .nav-emoji{font-size:20px}
 .nav-label{font-size:10px;color:var(--muted);font-weight:600}
+
+/* Tab content panels */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .anim-1{animation:fadeUp .35s ease both}
@@ -293,8 +314,6 @@ html,body{
 
   <!-- ── APP SCREEN ── -->
   <div id="app-screen">
-
-    <!-- User dropdown menu -->
     <div id="user-menu">
       <div class="menu-name" id="menu-name">Loading...</div>
       <div class="menu-email" id="menu-email"></div>
@@ -303,79 +322,135 @@ html,body{
       <button class="menu-btn danger" onclick="signOut()">🚪 &nbsp;Sign Out</button>
     </div>
 
-    <div class="scroll-area">
+    <div class="app-header">
+      <span class="app-title">Pantry Cauldron</span>
+      <div id="user-avatar-wrap" onclick="toggleMenu(event)" style="cursor:pointer"></div>
+    </div>
 
-      <div class="app-header anim-1">
-        <span class="app-title">Pantry Cauldron</span>
-        <div id="user-avatar-wrap" onclick="toggleMenu(event)" style="cursor:pointer"></div>
+    <!-- Tab Content Panels -->
+    <div class="scroll-area" id="scroll-area">
+      <!-- Home Tab -->
+      <div id="tab-home" class="tab-panel active">
+        <div class="wheel-wrapper">
+          <svg id="wheel-svg" width="320" height="320" viewBox="0 0 320 320"></svg>
+          <div class="cauldron-center" id="cauldron" onclick="triggerCauldron()">
+            <span class="cauldron-emoji">🪄</span>
+            <span class="cauldron-label" id="cauldron-label">Suggest<br>Recipes</span>
+            <div class="bubbles" id="bubbles">
+              <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Consumption nudge card -->
+        <div id="nudge-container" class="nudge-card" style="display:none"></div>
+
+        <div class="cat-strip" id="cat-strip"></div>
+
+        <div class="pantry-card">
+          <div class="pantry-card-bar" id="cat-bar"></div>
+          <div class="pantry-card-title" id="cat-title"></div>
+          <div class="pill-grid" id="pill-grid">
+            <div class="pill-skeleton"></div><div class="pill-skeleton"></div><div class="pill-skeleton"></div>
+          </div>
+        </div>
+
+        <div class="expiry-section" id="expiry-section" style="display:none">
+          <div class="expiry-title">⚠️ Heads up!</div>
+          <div id="expiry-list"></div>
+        </div>
+
+        <div class="add-card">
+          <div class="add-card-title">➕ Add to Pantry</div>
+          <input class="add-input" id="item-name" placeholder="Item name (e.g. Strawberries)"/>
+          <div class="add-row">
+            <input class="add-input add-qty" id="item-qty" placeholder="Qty" type="number" value="1"/>
+            <button class="add-btn" id="add-btn" onclick="addItem()">Add</button>
+          </div>
+        </div>
+
+        <div class="loading-box" id="loading-box" style="display:none">
+          <div class="spinner"></div>
+          <p>The cauldron is bubbling... ✨</p>
+        </div>
+
+        <div class="recipes-section" id="recipes-section" style="display:none">
+          <div class="recipes-title">✨ Cauldron Suggestions</div>
+          <div id="recipes-list"></div>
+        </div>
       </div>
 
-      <div class="wheel-wrapper anim-2">
-        <svg id="wheel-svg" width="320" height="320" viewBox="0 0 320 320"></svg>
-        <div class="cauldron-center" id="cauldron" onclick="triggerCauldron()">
-          <span class="cauldron-emoji">🪄</span>
-          <span class="cauldron-label" id="cauldron-label">Suggest<br>Recipes</span>
-          <div class="bubbles" id="bubbles">
-            <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+      <!-- Pantry Tab (same as home pantry section but full) -->
+      <div id="tab-pantry" class="tab-panel">
+        <div class="cat-strip" id="pantry-cat-strip"></div>
+        <div class="pantry-card" style="margin-top:10px">
+          <div class="pantry-card-title" id="pantry-cat-title">All Items</div>
+          <div class="pill-grid" id="pantry-full-grid"></div>
+        </div>
+        <div class="add-card">
+          <div class="add-card-title">➕ Add to Pantry</div>
+          <input class="add-input" id="pantry-item-name" placeholder="Item name"/>
+          <div class="add-row">
+            <input class="add-input add-qty" id="pantry-item-qty" placeholder="Qty" type="number" value="1"/>
+            <button class="add-btn" id="pantry-add-btn" onclick="addItemFromPantryTab()">Add</button>
           </div>
         </div>
       </div>
 
-      <div class="cat-strip anim-3" id="cat-strip"></div>
+      <!-- Recipes Tab (saved recipes placeholder) -->
+      <div id="tab-recipes" class="tab-panel">
+        <div style="padding:20px;text-align:center;color:var(--muted)">📖 Saved recipes will appear here soon.<br>Tap the cauldron to generate new suggestions!</div>
+      </div>
 
-      <div class="pantry-card anim-4">
-        <div class="pantry-card-bar"   id="cat-bar"></div>
-        <div class="pantry-card-title" id="cat-title"></div>
-        <div class="pill-grid"         id="pill-grid">
-          <div class="pill-skeleton"></div><div class="pill-skeleton"></div><div class="pill-skeleton"></div>
+      <!-- Reminders Tab (consumption nudge + expiry) -->
+      <div id="tab-reminders" class="tab-panel">
+        <div id="reminder-nudge" class="nudge-card" style="display:none;margin-top:20px"></div>
+        <div class="expiry-section" id="reminder-expiry" style="margin-top:20px">
+          <div class="expiry-title">⏰ Expiring Soon</div>
+          <div id="reminder-expiry-list"></div>
         </div>
       </div>
 
-      <div class="expiry-section" id="expiry-section" style="display:none">
-        <div class="expiry-title">⚠️ Heads up!</div>
-        <div id="expiry-list"></div>
-      </div>
-
-      <div class="add-card anim-5">
-        <div class="add-card-title">➕ Add to Pantry</div>
-        <input class="add-input" id="item-name" placeholder="Item name (e.g. Strawberries)"/>
-        <div class="add-row">
-          <input class="add-input add-qty" id="item-qty" placeholder="Qty" type="number" value="1"/>
-          <button class="add-btn" id="add-btn" onclick="addItem()">Add</button>
+      <!-- Shopping List Tab -->
+      <div id="tab-shopping" class="tab-panel">
+        <div class="shopping-container">
+          <div class="add-card" style="margin-bottom:16px">
+            <div class="add-card-title">➕ Add Shopping Item</div>
+            <div class="add-row">
+              <input class="add-input" id="shopping-new-name" placeholder="e.g., Avocado"/>
+              <button class="add-btn" onclick="addShoppingItem()">Add</button>
+            </div>
+          </div>
+          <div id="shopping-list-container"></div>
         </div>
       </div>
 
-      <div class="loading-box" id="loading-box" style="display:none">
-        <div class="spinner"></div>
-        <p>The cauldron is bubbling... ✨</p>
-      </div>
-
-      <div class="recipes-section" id="recipes-section" style="display:none">
-        <div class="recipes-title">✨ Cauldron Suggestions</div>
-        <div id="recipes-list"></div>
-      </div>
-
-    </div><!-- /scroll-area -->
+    </div>
 
     <div class="bottom-nav">
-      <div class="nav-item active" onclick="setTab(this)"><span class="nav-emoji">🏠</span><span class="nav-label">Home</span></div>
-      <div class="nav-item"        onclick="setTab(this)"><span class="nav-emoji">🥘</span><span class="nav-label">Pantry</span></div>
-      <div class="nav-item"        onclick="setTab(this)"><span class="nav-emoji">📖</span><span class="nav-label">Recipes</span></div>
-      <div class="nav-item"        onclick="setTab(this)"><span class="nav-emoji">⏰</span><span class="nav-label">Reminders</span></div>
-      <div class="nav-item"        onclick="setTab(this)"><span class="nav-emoji">🛒</span><span class="nav-label">List</span></div>
+      <div class="nav-item active" data-tab="home"><span class="nav-emoji">🏠</span><span class="nav-label">Home</span></div>
+      <div class="nav-item"        data-tab="pantry"><span class="nav-emoji">🥘</span><span class="nav-label">Pantry</span></div>
+      <div class="nav-item"        data-tab="recipes"><span class="nav-emoji">📖</span><span class="nav-label">Recipes</span></div>
+      <div class="nav-item"        data-tab="reminders"><span class="nav-emoji">⏰</span><span class="nav-label">Reminders</span></div>
+      <div class="nav-item"        data-tab="shopping"><span class="nav-emoji">🛒</span><span class="nav-label">List</span></div>
     </div>
-  </div><!-- /app-screen -->
+  </div>
 
   <div id="toast"></div>
-</div><!-- /phone -->
+</div>
 
 <script>
-// ── Supabase ──────────────────────────────────────────────────────────────────
+// ================================ SUPABASE =====================================
 const SUPA_URL = 'https://ultcwpsxdqoztyhjjujq.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsdGN3cHN4ZHFvenR5aGpqdWpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDM5MzcsImV4cCI6MjA5Mjc3OTkzN30.JpHD4A6ubMBkF7aDat83taXM3qB2L5XIE1Q0tqbz3-o';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ⚠️ IMPORTANT: In production, move this key to a Supabase Edge Function (see to-do list)
+const SPOONACULAR_KEY = '45ad654126f544a6b6d74230b8d281b1';
+
+// ================================ GLOBALS ======================================
+let currentUser = null, pantry = [], selectedCat = 'Fruits', shoppingItems = [];
+
 const CATEGORIES = [
   { label:'Fruits',       emoji:'🍎', color:'#F5C842', startDeg:-90, endDeg:-30 },
   { label:'Dairy & Fish', emoji:'🐟', color:'#4BAEE8', startDeg:-30, endDeg: 30 },
@@ -385,12 +460,15 @@ const CATEGORIES = [
   { label:'Vegetables',   emoji:'🥦', color:'#52B356', startDeg:210, endDeg:270 },
   { label:'Meat',         emoji:'🥩', color:'#E05252', startDeg:270, endDeg:330 },
 ];
+
 const EMOJI = {
   'Red Apples':'🍎','Green Apples':'🍏','Lemons':'🍋','Bananas':'🍌',
   'Oranges':'🍊','Grapes':'🍇','Cherry Tomatoes':'🍅','Pears':'🍐',
   'Chicken':'🍗','Salmon':'🐟','Cheddar':'🧀','Milk':'🥛',
   'Broccoli':'🥦','Spinach':'🌿','Carrots':'🥕','Eggs':'🥚',
 };
+
+// SEEDS now have proper categories
 const SEEDS = [
   {name:'Red Apples',category:'Fruits',quantity:4,unit:'pieces',shelf_life_days:7},
   {name:'Green Apples',category:'Fruits',quantity:3,unit:'pieces',shelf_life_days:7},
@@ -400,41 +478,37 @@ const SEEDS = [
   {name:'Grapes',category:'Fruits',quantity:1,unit:'bunch',shelf_life_days:5},
   {name:'Cherry Tomatoes',category:'Vegetables',quantity:20,unit:'pieces',shelf_life_days:5},
   {name:'Pears',category:'Fruits',quantity:3,unit:'pieces',shelf_life_days:7},
+  {name:'Broccoli',category:'Vegetables',quantity:2,unit:'heads',shelf_life_days:5},
+  {name:'Spinach',category:'Vegetables',quantity:1,unit:'bag',shelf_life_days:4},
+  {name:'Carrots',category:'Vegetables',quantity:6,unit:'pieces',shelf_life_days:10},
+  {name:'Eggs',category:'Dairy & Fish',quantity:12,unit:'pieces',shelf_life_days:21},
+  {name:'Milk',category:'Dairy & Fish',quantity:1,unit:'liter',shelf_life_days:7},
 ];
 
-let currentUser = null, pantry = [], selectedCat = 'Fruits';
-
-// ── Clock ─────────────────────────────────────────────────────────────────────
-function tick(){
-  const n=new Date();
-  document.getElementById('clock').textContent=
-    String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
-}
-setInterval(tick,10000); tick();
-
-// ── Toast ─────────────────────────────────────────────────────────────────────
+// ================================ HELPERS =======================================
 function toast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2800);
 }
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
+function clockTick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+}
+setInterval(clockTick,10000); clockTick();
+
+// ================================ AUTH ==========================================
 function setErr(m){document.getElementById('auth-error').textContent=m}
 function setMsg(m){document.getElementById('auth-msg').textContent=m}
 
 function toggleEmailForm(){
-  const f=document.getElementById('email-form');
-  f.classList.toggle('open');
+  document.getElementById('email-form').classList.toggle('open');
 }
 
 async function signInWith(provider){
   setErr(''); setMsg('Redirecting...');
-  const redirectTo = window.location.href;
-  const { error } = await sb.auth.signInWithOAuth({
-    provider,
-    options: { redirectTo }
-  });
+  const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.href } });
   if(error){ setMsg(''); setErr(error.message); }
 }
 
@@ -442,17 +516,16 @@ async function signInEmail(){
   setErr(''); setMsg('Signing in...');
   const email=document.getElementById('auth-email').value.trim();
   const pw=document.getElementById('auth-password').value;
-  if(!email||!pw){ setMsg(''); setErr('Enter your email and password.'); return; }
-  const {data,error}=await sb.auth.signInWithPassword({email,password:pw});
+  if(!email||!pw){ setMsg(''); setErr('Enter email and password.'); return; }
+  const {error}=await sb.auth.signInWithPassword({email,password:pw});
   if(error){ setMsg(''); setErr(error.message); return; }
-  onSignedIn(data.user);
 }
 
 async function signUpEmail(){
   setErr(''); setMsg('Creating account...');
   const email=document.getElementById('auth-email').value.trim();
   const pw=document.getElementById('auth-password').value;
-  if(!email||!pw){ setMsg(''); setErr('Enter an email and password.'); return; }
+  if(!email||!pw){ setMsg(''); setErr('Enter email and password.'); return; }
   if(pw.length<6){ setMsg(''); setErr('Password must be at least 6 characters.'); return; }
   const {error}=await sb.auth.signUp({email,password:pw});
   if(error){ setMsg(''); setErr(error.message); return; }
@@ -465,7 +538,6 @@ async function signOut(){
   currentUser=null; pantry=[];
   document.getElementById('app-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
-  setErr(''); setMsg('');
   toast('Signed out 👋');
 }
 
@@ -474,15 +546,12 @@ function onSignedIn(user){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
 
-  // Build avatar
   const wrap=document.getElementById('user-avatar-wrap');
   const meta=user.user_metadata||{};
   const name=meta.full_name||meta.name||user.email?.split('@')[0]||'You';
   const avatar=meta.avatar_url||meta.picture||null;
-
   document.getElementById('menu-name').textContent=name;
   document.getElementById('menu-email').textContent=user.email||'OAuth user';
-
   if(avatar){
     wrap.innerHTML=`<img class="user-avatar" src="${avatar}" alt="${name}" onclick="toggleMenu(event)"/>`;
   } else {
@@ -491,13 +560,13 @@ function onSignedIn(user){
   }
 
   loadPantry();
+  loadShoppingList();
+  loadConsumptionNudge();
 }
 
-// ── User menu ─────────────────────────────────────────────────────────────────
 function toggleMenu(e){
   if(e) e.stopPropagation();
-  const menu=document.getElementById('user-menu');
-  menu.classList.toggle('open');
+  document.getElementById('user-menu').classList.toggle('open');
 }
 function closeMenu(){
   document.getElementById('user-menu').classList.remove('open');
@@ -508,14 +577,10 @@ document.addEventListener('click', e=>{
   if(menu && wrap && !menu.contains(e.target) && !wrap.contains(e.target)) closeMenu();
 });
 
-// ── Pantry ────────────────────────────────────────────────────────────────────
+// ================================ PANTRY ========================================
 async function loadPantry(){
   showSkeletons();
-  const {data,error}=await sb
-    .from('pantry_items').select('*')
-    .eq('user_id',currentUser.id)
-    .order('created_at',{ascending:false});
-
+  const {data,error}=await sb.from('pantry_items').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
   if(error){
     toast('⚠️ DB error — showing demo data'); pantry=SEEDS.slice();
   } else if(!data||data.length===0){
@@ -531,47 +596,151 @@ async function loadPantry(){
     if(item.added_date&&item.shelf_life_days){
       const exp=new Date(item.added_date).getTime()+item.shelf_life_days*86400000;
       item._daysLeft=Math.ceil((exp-Date.now())/86400000);
-    }
+    } else item._daysLeft=99;
   });
 
-  renderAll(); checkExpiry();
+  renderAllTabs();
+  checkExpiry();
+  loadConsumptionNudge();
 }
 
 async function addItem(){
   const name=document.getElementById('item-name').value.trim();
   const qty=parseInt(document.getElementById('item-qty').value)||1;
   if(!name){document.getElementById('item-name').focus();return;}
-  const row={user_id:currentUser.id,name,category:selectedCat,
-    quantity:qty,unit:'piece',shelf_life_days:7,
-    added_date:new Date().toISOString()};
+  const row={user_id:currentUser.id,name,category:selectedCat, quantity:qty, unit:'piece', shelf_life_days:7, added_date:new Date().toISOString()};
   const {data,error}=await sb.from('pantry_items').insert([row]).select();
   if(error){toast('❌ '+error.message);return;}
   const saved=data?.[0]||row; saved._daysLeft=7;
   pantry.unshift(saved);
   document.getElementById('item-name').value='';
   document.getElementById('item-qty').value='1';
-  toast('✅ '+name+' added!'); renderPantry();
+  toast('✅ '+name+' added!'); renderAllTabs();
 }
 
-// ── Expiry ────────────────────────────────────────────────────────────────────
-function checkExpiry(){
+function addItemFromPantryTab(){
+  const name=document.getElementById('pantry-item-name').value.trim();
+  const qty=parseInt(document.getElementById('pantry-item-qty').value)||1;
+  if(!name){document.getElementById('pantry-item-name').focus();return;}
+  (async()=>{
+    const row={user_id:currentUser.id,name,category:selectedCat, quantity:qty, unit:'piece', shelf_life_days:7, added_date:new Date().toISOString()};
+    const {error}=await sb.from('pantry_items').insert([row]);
+    if(error){toast('❌ '+error.message);return;}
+    document.getElementById('pantry-item-name').value='';
+    document.getElementById('pantry-item-qty').value='1';
+    await loadPantry();
+    toast('✅ '+name+' added!');
+  })();
+}
+
+function showSkeletons(){
+  document.getElementById('pill-grid').innerHTML='<div class="pill-skeleton"></div><div class="pill-skeleton"></div><div class="pill-skeleton"></div>';
+}
+
+// ================================ EXPIRY & NUDGES ================================
+async function checkExpiry(){
   const warn=pantry.filter(i=>i._daysLeft!==undefined&&i._daysLeft<=2);
   const sec=document.getElementById('expiry-section');
   const list=document.getElementById('expiry-list');
-  if(!warn.length){sec.style.display='none';return;}
-  sec.style.display='block';
-  list.innerHTML=warn.map(item=>{
+  const reminderList=document.getElementById('reminder-expiry-list');
+  if(!warn.length){
+    if(sec) sec.style.display='none';
+    if(reminderList) reminderList.innerHTML='<div class="empty-shopping">🎉 Nothing expiring soon!</div>';
+    return;
+  }
+  if(sec) sec.style.display='block';
+  const html=warn.map(item=>{
     const u=item._daysLeft<=0;
-    const msg=u
-      ?`Hey! Your <strong>${item.name}</strong> has expired 😬 Use it up or toss it!`
-      :`Your <strong>${item.name}</strong> expires in <strong>${item._daysLeft} day${item._daysLeft===1?'':'s'}</strong>. Quick recipe? 🍳`;
-    return`<div class="expiry-card ${u?'urgent':''}"><span class="expiry-emoji">${u?'🚨':'⏳'}</span><span class="expiry-text">${msg}</span></div>`;
+    const msg=u ? `Hey! Your <strong>${item.name}</strong> has expired 😬` : `Your <strong>${item.name}</strong> expires in <strong>${item._daysLeft} day${item._daysLeft===1?'':'s'}</strong>.`;
+    return `<div class="expiry-card ${u?'urgent':''}">
+      <span class="expiry-emoji">${u?'🚨':'⏳'}</span>
+      <span class="expiry-text">${msg}</span>
+      <button class="expiry-add-btn" onclick="quickAddToShopping('${item.name.replace(/'/g,"\\'")}')">🛒 Add to list</button>
+    </div>`;
   }).join('');
+  if(list) list.innerHTML=html;
+  if(reminderList) reminderList.innerHTML=html;
 }
 
-// ── Cauldron ──────────────────────────────────────────────────────────────────
-const SPOONACULAR_KEY = '45ad654126f544a6b6d74230b8d281b1';
+function quickAddToShopping(itemName){
+  addShoppingItemByName(itemName);
+}
 
+async function loadConsumptionNudge(){
+  if(!currentUser) return;
+  const {data,error}=await sb.rpc('check_consumption_nudge', { p_user_id: currentUser.id });
+  if(error || !data || data.length===0) return;
+  const nudge=data[0];
+  const msg = nudge.egg_msg || nudge.veggie_msg;
+  if(!msg) return;
+  const nudgeDiv=document.getElementById('nudge-container');
+  const reminderNudge=document.getElementById('reminder-nudge');
+  if(nudgeDiv){
+    nudgeDiv.style.display='block';
+    nudgeDiv.innerHTML=`<div class="nudge-msg">🥚✨ ${msg}</div><div class="nudge-sub">Keep up the great cooking!</div>`;
+  }
+  if(reminderNudge){
+    reminderNudge.style.display='block';
+    reminderNudge.innerHTML=`<div class="nudge-msg">🥚✨ ${msg}</div><div class="nudge-sub">Check your consumption stats in your profile soon.</div>`;
+  }
+}
+
+// ================================ SHOPPING LIST ==================================
+async function loadShoppingList(){
+  if(!currentUser) return;
+  const {data,error}=await sb.from('shopping_list').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+  if(error){console.error(error); return;}
+  shoppingItems=data||[];
+  renderShoppingList();
+}
+
+function renderShoppingList(){
+  const container=document.getElementById('shopping-list-container');
+  if(!container) return;
+  if(!shoppingItems.length){
+    container.innerHTML='<div class="empty-shopping">🛒 Your shopping list is empty. Add items from expiring goods or missing recipe ingredients.</div>';
+    return;
+  }
+  container.innerHTML=shoppingItems.map(item=>`
+    <div class="shopping-item">
+      <span class="shopping-name">${escapeHtml(item.name)}</span>
+      <button class="shopping-delete" onclick="removeShoppingItem('${item.id}')">🗑️</button>
+    </div>
+  `).join('');
+}
+
+async function addShoppingItem(){
+  const name=document.getElementById('shopping-new-name').value.trim();
+  if(!name) return;
+  await addShoppingItemByName(name);
+  document.getElementById('shopping-new-name').value='';
+}
+
+async function addShoppingItemByName(name){
+  if(!currentUser) return;
+  const {data,error}=await sb.from('shopping_list').insert([{user_id:currentUser.id, name}]).select();
+  if(error){toast('❌ '+error.message); return;}
+  toast(`🛒 ${name} added to shopping list`);
+  await loadShoppingList();
+}
+
+async function removeShoppingItem(id){
+  const {error}=await sb.from('shopping_list').delete().eq('id',id).eq('user_id',currentUser.id);
+  if(error){toast('❌ '+error.message); return;}
+  toast('Removed from list');
+  await loadShoppingList();
+}
+
+function escapeHtml(str){
+  return str.replace(/[&<>]/g, function(m){
+    if(m==='&') return '&amp;';
+    if(m==='<') return '&lt;';
+    if(m==='>') return '&gt;';
+    return m;
+  });
+}
+
+// ================================ CAULDRON & RECIPES =============================
 async function triggerCauldron(){
   const el=document.getElementById('cauldron');
   const lbl=document.getElementById('cauldron-label');
@@ -581,28 +750,25 @@ async function triggerCauldron(){
   document.getElementById('recipes-section').style.display='none';
 
   try {
-    // Build ingredient list from pantry
     const ingredients = pantry.map(i=>i.name).join(',+');
     const url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredients)}&number=5&ranking=1&ignorePantry=true&apiKey=${SPOONACULAR_KEY}`;
-    const res  = await fetch(url);
+    const res = await fetch(url);
     const data = await res.json();
-
     if(!data || data.status === 'failure' || !data.length){
       toast('⚠️ No recipes found — try adding more ingredients!');
       stopBubbling(); return;
     }
-
     const recipes = data.map(r=>({
-      id:    r.id,
+      id: r.id,
       title: r.title,
-      img:   r.image,
-      used:  r.usedIngredients.map(i=>i.name),
-      miss:  r.missedIngredients.map(i=>i.name),
+      img: r.image,
+      used: r.usedIngredients.map(i=>i.name),
+      miss: r.missedIngredients.map(i=>i.name),
+      sourceName: r.sourceName || 'Spoonacular',
+      sourceUrl: r.sourceUrl || `https://spoonacular.com/recipes/${r.title.replace(/ /g,'-')}-${r.id}`
     }));
-
     stopBubbling();
     renderRecipes(recipes);
-
   } catch(err){
     toast('⚠️ Could not reach recipe API. Check your connection.');
     stopBubbling();
@@ -623,56 +789,65 @@ function renderRecipes(list){
   const sec=document.getElementById('recipes-section');
   sec.style.display='block';
   document.getElementById('recipes-list').innerHTML=list.map(r=>`
-    <div class="recipe-card" onclick="cookThis(${r.id}, '${r.title.replace(/'/g,"\\'")}', ${JSON.stringify(r.used)})">
+    <div class="recipe-card">
       <img class="recipe-img" src="${r.img}" alt="${r.title}" loading="lazy"/>
       <div class="recipe-info">
-        <div class="recipe-name">${r.title}</div>
+        <div class="recipe-name">${escapeHtml(r.title)}</div>
         <div class="recipe-used">Using: ${r.used.join(', ')}</div>
         ${r.miss.length ? `<div class="recipe-miss">Need: ${r.miss.join(', ')}</div>` : '<div class="recipe-miss">You have everything! 🎉</div>'}
-        <div class="recipe-cta">🔥 Cook This →</div>
+        <div class="recipe-actions">
+          <span class="recipe-cta" onclick="cookThis(${r.id}, '${escapeHtml(r.title).replace(/'/g,"\\'")}', ${JSON.stringify(r.used)})">🔥 Cook This</span>
+          ${r.miss.length ? `<span class="shopping-add" onclick="addMissingToShopping('${r.miss.map(m=>escapeHtml(m)).join(',').replace(/'/g,"\\'")}')">➕ Add missing to list</span>` : ''}
+        </div>
+        <div class="recipe-source" style="font-size:10px;color:#999;margin-top:6px">
+          Recipe from: <a href="${r.sourceUrl}" target="_blank" style="color:#FF6B35;text-decoration:none">${r.sourceName}</a>
+        </div>
       </div>
-    </div>`).join('');
+    </div>
+  `).join('');
   sec.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function addMissingToShopping(missingStr){
+  const items = missingStr.split(',');
+  items.forEach(async item=>{
+    await addShoppingItemByName(item.trim());
+  });
+  toast(`🛒 ${items.length} item(s) added to shopping list`);
 }
 
 async function cookThis(recipeId, recipeTitle, usedIngredients){
   const confirmed = confirm(`Cook "${recipeTitle}"?\n\nThis will subtract the ingredients from your pantry and log the meal.`);
   if(!confirmed) return;
-
   const ingredients = usedIngredients.map(name=>({name, quantity:1, unit:'piece'}));
-
-  const {error} = await sb.rpc('cook_recipe', {
-    p_recipe_id:   recipeId.toString(),
-    p_recipe_title: recipeTitle,
-    p_ingredients:  ingredients,
-  });
-
+  const {error} = await sb.rpc('cook_recipe', { p_recipe_id: recipeId.toString(), p_recipe_title: recipeTitle, p_ingredients: ingredients });
   if(error){ toast('❌ '+error.message); return; }
-
   toast('🍽️ Delicious! Pantry updated.');
   loadPantry();
 }
 
-// ── SVG Wheel ─────────────────────────────────────────────────────────────────
-const NS='http://www.w3.org/2000/svg',CX=160,CY=160,OR=154,IR=60,GAP=3;
-function polar(r,d){const a=(d-90)*Math.PI/180;return[CX+r*Math.cos(a),CY+r*Math.sin(a)]}
+// ================================ WHEEL & UI =====================================
+const NS='http://www.w3.org/2000/svg', CX=160, CY=160, OR=154, IR=60, GAP=3;
+function polar(r,d){const a=(d-90)*Math.PI/180; return [CX+r*Math.cos(a), CY+r*Math.sin(a)];}
 function arc(s,e){
   const[x1,y1]=polar(OR,s+GAP),[x2,y2]=polar(OR,e-GAP);
   const[x3,y3]=polar(IR,e-GAP),[x4,y4]=polar(IR,s+GAP);
   const lg=(e-s)>180?1:0;
-  return`M${x1} ${y1} A${OR} ${OR} 0 ${lg} 1 ${x2} ${y2} L${x3} ${y3} A${IR} ${IR} 0 ${lg} 0 ${x4} ${y4}Z`;
+  return `M${x1} ${y1} A${OR} ${OR} 0 ${lg} 1 ${x2} ${y2} L${x3} ${y3} A${IR} ${IR} 0 ${lg} 0 ${x4} ${y4}Z`;
 }
-function mid(s,e){return polar((OR+IR)/2,(s+e)/2)}
+function mid(s,e){return polar((OR+IR)/2,(s+e)/2);}
 
 function drawWheel(){
-  const svg=document.getElementById('wheel-svg'); svg.innerHTML='';
+  const svg=document.getElementById('wheel-svg'); if(!svg) return;
+  svg.innerHTML='';
   CATEGORIES.forEach(cat=>{
-    const on=cat.label===selectedCat,g=document.createElementNS(NS,'g');
+    const on=cat.label===selectedCat;
+    const g=document.createElementNS(NS,'g');
     const p=document.createElementNS(NS,'path');
     p.setAttribute('d',arc(cat.startDeg,cat.endDeg));
     p.setAttribute('fill',cat.color); p.setAttribute('opacity',on?'1':'0.78');
     p.setAttribute('stroke','white'); p.setAttribute('stroke-width',on?'3':'1.5');
-    p.setAttribute('class','arc-path'+(on?' active':''));
+    p.classList.add('arc-path');
     const[lx,ly]=mid(cat.startDeg,cat.endDeg);
     const te=document.createElementNS(NS,'text');
     te.setAttribute('x',lx);te.setAttribute('y',ly-11);
@@ -686,7 +861,7 @@ function drawWheel(){
     tl.textContent=cat.label;
     g.appendChild(p);g.appendChild(te);g.appendChild(tl);
     g.style.cursor='pointer';
-    g.addEventListener('click',()=>{selectedCat=cat.label;renderAll();});
+    g.addEventListener('click',()=>{ selectedCat=cat.label; renderAllTabs(); });
     svg.appendChild(g);
   });
   const c=document.createElementNS(NS,'circle');
@@ -695,55 +870,84 @@ function drawWheel(){
 }
 
 function renderStrip(){
-  const el=document.getElementById('cat-strip'); el.innerHTML='';
+  const el=document.getElementById('cat-strip'); if(!el) return;
+  el.innerHTML='';
   CATEGORIES.forEach(cat=>{
     const b=document.createElement('button');
     b.className='cat-chip'+(cat.label===selectedCat?' active':'');
     b.style.background=cat.color; b.textContent=cat.emoji+' '+cat.label;
-    b.onclick=()=>{selectedCat=cat.label;renderAll();};
+    b.onclick=()=>{ selectedCat=cat.label; renderAllTabs(); };
     el.appendChild(b);
   });
-}
-
-function showSkeletons(){
-  document.getElementById('pill-grid').innerHTML=
-    '<div class="pill-skeleton"></div><div class="pill-skeleton"></div><div class="pill-skeleton"></div>';
+  // also pantry strip
+  const pStrip=document.getElementById('pantry-cat-strip');
+  if(pStrip){
+    pStrip.innerHTML='';
+    CATEGORIES.forEach(cat=>{
+      const b=document.createElement('button');
+      b.className='cat-chip'+(cat.label===selectedCat?' active':'');
+      b.style.background=cat.color; b.textContent=cat.emoji+' '+cat.label;
+      b.onclick=()=>{ selectedCat=cat.label; renderAllTabs(); };
+      pStrip.appendChild(b);
+    });
+  }
 }
 
 function renderPantry(){
   const cat=CATEGORIES.find(c=>c.label===selectedCat);
-  document.getElementById('cat-bar').style.background=cat.color;
-  document.getElementById('add-btn').style.background=cat.color;
-  document.getElementById('cat-title').textContent=selectedCat;
+  const bar=document.getElementById('cat-bar'); if(bar) bar.style.background=cat.color;
+  const addBtn=document.getElementById('add-btn'); if(addBtn) addBtn.style.background=cat.color;
+  const title=document.getElementById('cat-title'); if(title) title.textContent=selectedCat;
+  const fullTitle=document.getElementById('pantry-cat-title'); if(fullTitle) fullTitle.textContent=selectedCat;
+
   const items=pantry.filter(i=>i.category===selectedCat);
-  const grid=document.getElementById('pill-grid'); grid.innerHTML='';
-  if(!items.length){
-    grid.innerHTML='<span style="color:#bbb;font-style:italic;font-size:13px">No items yet — add one below!</span>';
-    return;
+  const grid=document.getElementById('pill-grid');
+  if(grid){
+    if(!items.length) grid.innerHTML='<span style="color:#bbb;font-style:italic;font-size:13px">No items yet — add one below!</span>';
+    else grid.innerHTML=items.map(item=>`<div class="pill"><span>${EMOJI[item.name]||'🧺'}</span><span>${item.name}</span><span class="pill-check">✓</span></div>`).join('');
   }
-  items.forEach(item=>{
-    const d=document.createElement('div'); d.className='pill';
-    if(item._daysLeft!==undefined&&item._daysLeft<=2) d.style.borderColor='#FFCCCC';
-    d.innerHTML=`<span>${EMOJI[item.name]||'🧺'}</span><span>${item.name}</span><span class="pill-check">✓</span>`;
-    grid.appendChild(d);
+  const fullGrid=document.getElementById('pantry-full-grid');
+  if(fullGrid){
+    const allItems=pantry.filter(i=>i.category===selectedCat);
+    if(!allItems.length) fullGrid.innerHTML='<span style="color:#bbb;font-style:italic;font-size:13px">No items in this category</span>';
+    else fullGrid.innerHTML=allItems.map(item=>`<div class="pill"><span>${EMOJI[item.name]||'🧺'}</span><span>${item.name}</span><span class="pill-check">✓</span></div>`).join('');
+  }
+}
+
+function renderAllTabs(){
+  drawWheel();
+  renderStrip();
+  renderPantry();
+  checkExpiry();
+}
+
+// ================================ TAB SWITCHING ==================================
+function switchTab(tabId){
+  document.querySelectorAll('.tab-panel').forEach(panel=>panel.classList.remove('active'));
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(item=>item.classList.remove('active'));
+  document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
+  if(tabId==='shopping') loadShoppingList();
+  if(tabId==='reminders'){ checkExpiry(); loadConsumptionNudge(); }
+}
+
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    const tab=item.getAttribute('data-tab');
+    switchTab(tab);
   });
-}
+});
 
-function setTab(el){
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  el.classList.add('active');
-}
-function renderAll(){drawWheel();renderStrip();renderPantry();}
+// ================================ INIT ==========================================
+document.getElementById('item-name')?.addEventListener('keydown',e=>{if(e.key==='Enter') addItem();});
+document.getElementById('auth-password')?.addEventListener('keydown',e=>{if(e.key==='Enter') signInEmail();});
 
-document.getElementById('item-name').addEventListener('keydown',e=>{if(e.key==='Enter')addItem();});
-document.getElementById('auth-password').addEventListener('keydown',e=>{if(e.key==='Enter')signInEmail();});
-
-// ── Boot: check existing session ──────────────────────────────────────────────
 (async()=>{
   const {data:{session}}=await sb.auth.getSession();
   if(session?.user) onSignedIn(session.user);
   sb.auth.onAuthStateChange((_,session)=>{
     if(session?.user&&!currentUser) onSignedIn(session.user);
+    else if(!session && currentUser) location.reload();
   });
 })();
 </script>
