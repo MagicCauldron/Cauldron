@@ -1,955 +1,727 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<title>Pantry Cauldron</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fraunces:wght@700&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --cream:#F7F3EE;--card:#fff;--orange:#FF6B35;--dark:#1A1A2E;
-  --muted:#9A9A9A;--border:#EFE9E0;--shadow:0 4px 24px rgba(0,0,0,.07);
-  --font:'Nunito',sans-serif;--serif:'Fraunces',serif;
-}
-html,body{
-  min-height:100%;background:#DDD5C8;
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--font);padding:24px 0;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Pantry Cauldron – Magic Ingredient Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-/* ── Phone shell ── */
-.phone{
-  width:390px;min-height:844px;background:var(--cream);border-radius:48px;
-  box-shadow:0 0 0 10px #1a1a1a,0 0 0 12px #2a2a2a,0 40px 80px rgba(0,0,0,.45);
-  overflow:hidden;display:flex;flex-direction:column;position:relative;
-}
-.phone::before{
-  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:120px;height:30px;background:#1a1a1a;border-radius:0 0 20px 20px;z-index:99;
-}
-.status-bar{
-  height:44px;display:flex;align-items:flex-end;justify-content:space-between;
-  padding:0 28px 6px;font-size:12px;font-weight:700;color:var(--dark);flex-shrink:0;
-}
-.scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding-bottom:88px}
-.scroll-area::-webkit-scrollbar{display:none}
+    body {
+      background: #2e241f;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      padding: 16px;
+    }
 
-/* ── Toast ── */
-#toast{
-  position:absolute;bottom:90px;left:50%;transform:translateX(-50%);
-  background:var(--dark);color:white;font-size:13px;font-weight:700;
-  padding:10px 20px;border-radius:20px;white-space:nowrap;
-  opacity:0;pointer-events:none;transition:opacity .3s;z-index:200;
-}
-#toast.show{opacity:1}
+    /* Phone shell */
+    .phone {
+      max-width: 400px;
+      width: 100%;
+      background: #fef7e8;
+      border-radius: 48px;
+      box-shadow: 0 0 0 8px #1a1a1a, 0 25px 40px rgba(0,0,0,0.4);
+      overflow: hidden;
+      position: relative;
+      height: 780px;
+      display: flex;
+      flex-direction: column;
+    }
 
-/* ── Auth screen ── */
-#auth-screen{
-  display:flex;flex-direction:column;align-items:center;
-  padding:50px 28px 32px;gap:12px;min-height:780px;
-}
-.auth-logo{font-size:72px;filter:drop-shadow(0 4px 12px rgba(255,107,53,.3))}
-.auth-title{font-family:var(--serif);font-size:30px;color:var(--dark);text-align:center;line-height:1.2}
-.auth-sub{font-size:14px;color:var(--muted);text-align:center;line-height:1.6;max-width:280px}
+    .status-bar {
+      padding: 12px 20px 6px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+      color: #2c2c2c;
+      background: #fef7e8;
+    }
 
-/* OAuth buttons */
-.oauth-btn{
-  width:100%;display:flex;align-items:center;justify-content:center;gap:12px;
-  border:none;border-radius:16px;padding:14px 20px;
-  font-size:15px;font-weight:700;font-family:var(--font);
-  cursor:pointer;transition:transform .15s,box-shadow .15s;
-}
-.oauth-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,.12)}
-.oauth-btn:active{transform:scale(.98)}
-.oauth-btn.google{background:white;color:#3C4043;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.oauth-btn.facebook{background:#1877F2;color:white}
-.oauth-icon{width:22px;height:22px;flex-shrink:0}
+    /* Scroll area */
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 16px 20px;
+      scrollbar-width: thin;
+    }
 
-.auth-divider{
-  width:100%;display:flex;align-items:center;gap:12px;
-  color:var(--muted);font-size:12px;margin:2px 0;
-}
-.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    /* Centered cauldron + magic stick */
+    .cauldron-header {
+      display: flex;
+      justify-content: center;
+      margin: 8px 0 16px;
+      position: relative;
+    }
+    .cauldron-svg {
+      width: 140px;
+      height: 140px;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.2));
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .cauldron-svg:active {
+      transform: scale(0.96);
+    }
 
-/* Email collapse */
-.email-toggle{
-  background:none;border:none;color:var(--orange);font-size:13px;
-  font-weight:700;font-family:var(--font);cursor:pointer;
-  text-decoration:underline;text-underline-offset:3px;
-}
-#email-form{display:none;width:100%;gap:10px;flex-direction:column}
-#email-form.open{display:flex}
-.auth-input{
-  width:100%;border:1.5px solid var(--border);border-radius:14px;
-  padding:13px 16px;font-size:15px;font-family:var(--font);color:var(--dark);
-  outline:none;transition:border-color .2s;background:white;
-}
-.auth-input:focus{border-color:var(--orange)}
-.auth-btn{
-  width:100%;border:none;border-radius:14px;padding:13px;
-  font-size:15px;font-weight:800;font-family:var(--font);
-  cursor:pointer;transition:filter .15s;
-}
-.auth-btn.primary{background:var(--orange);color:white}
-.auth-btn.secondary{background:transparent;color:var(--orange);border:2px solid var(--orange)}
-.auth-btn:hover{filter:brightness(1.07)}
+    /* main categories row (like wheel replacement) */
+    .categories-row {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 8px 4px 16px;
+      scrollbar-width: thin;
+      white-space: nowrap;
+    }
+    .cat-btn {
+      flex-shrink: 0;
+      padding: 8px 18px;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 15px;
+      border: none;
+      background: #e9dfcf;
+      color: #2c2c2c;
+      transition: all 0.2s;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .cat-btn.active {
+      transform: scale(1.02);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      color: white;
+    }
+    /* category colors */
+    .cat-Fruits.active { background: #F5C542; color: #2d2b1f; }
+    .cat-Vegetables.active { background: #52B356; color: white; }
+    .cat-Meat.active { background: #E05252; color: white; }
+    .cat-Dairy.active { background: #4BAEE8; color: white; }
+    .cat-Fish.active { background: #3A9BD5; color: white; }
+    .cat-Spices.active { background: #F4883E; color: white; }
+    .cat-Essentials.active { background: #A07850; color: white; }
+    .cat-Other.active { background: #9B6EC8; color: white; }
 
-.auth-note{font-size:11px;color:var(--muted);text-align:center;line-height:1.5;max-width:280px}
-#auth-error{color:#E05252;font-size:12px;font-weight:700;text-align:center;min-height:16px}
-#auth-msg  {color:var(--muted);font-size:12px;text-align:center;min-height:16px}
+    /* Subcategory grid */
+    .subcat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+      margin: 12px 0 20px;
+    }
+    .ingredient-card {
+      background: white;
+      border-radius: 28px;
+      padding: 12px 12px 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: all 0.15s;
+      border: 1px solid #f0e3d4;
+    }
+    .ingredient-name {
+      font-weight: 800;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .emoji-badge {
+      font-size: 22px;
+    }
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .toggle-switch {
+      width: 48px;
+      height: 26px;
+      background: #ddd;
+      border-radius: 30px;
+      display: inline-block;
+      position: relative;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .toggle-switch.active {
+      background: #52B356;
+    }
+    .toggle-switch::after {
+      content: "";
+      display: block;
+      width: 22px;
+      height: 22px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 3px;
+      transition: 0.2s;
+    }
+    .toggle-switch.active::after {
+      left: 23px;
+    }
+    .qty-input {
+      width: 100%;
+      border: 1px solid #e2d5c5;
+      border-radius: 40px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      background: #fefaf5;
+      text-align: center;
+    }
+    .missing-badge {
+      font-size: 12px;
+      color: #E05252;
+      font-weight: 700;
+      margin-top: 8px;
+      text-align: center;
+    }
 
-/* ── App screen ── */
-#app-screen{display:none}
-.app-header{display:flex;justify-content:space-between;align-items:center;padding:12px 24px 4px}
-.app-title{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--dark)}
-.user-avatar{
-  width:36px;height:36px;border-radius:50%;object-fit:cover;
-  border:2px solid var(--orange);cursor:pointer;
-}
-.user-initials{
-  width:36px;height:36px;border-radius:50%;background:var(--orange);
-  display:flex;align-items:center;justify-content:center;
-  font-size:14px;font-weight:900;color:white;cursor:pointer;
-  border:2px solid white;box-shadow:var(--shadow);
-}
+    /* missing list section */
+    .missing-section {
+      background: #fff4e6;
+      border-radius: 32px;
+      padding: 16px;
+      margin: 8px 0 20px;
+    }
+    .missing-title {
+      font-weight: 800;
+      font-size: 18px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .missing-items {
+      background: white;
+      border-radius: 24px;
+      padding: 14px;
+      margin: 12px 0;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      word-break: break-word;
+    }
+    .share-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .share-btn {
+      background: #1e2a3a;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 40px;
+      color: white;
+      font-weight: 600;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    .share-btn:active { transform: scale(0.96); }
+    .copy-btn { background: #4f46e5; }
 
-/* ── User menu ── */
-#user-menu{
-  position:absolute;top:70px;right:16px;
-  background:white;border-radius:16px;padding:12px;
-  box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:999;
-  display:none;min-width:200px;
-}
-#user-menu.open{display:block !important}
-.menu-name{font-size:13px;font-weight:800;color:var(--dark);margin-bottom:2px}
-.menu-email{font-size:11px;color:var(--muted);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:10px}
-.menu-btn{
-  width:100%;background:none;border:none;border-radius:10px;
-  padding:9px 12px;text-align:left;font-size:13px;font-weight:700;
-  font-family:var(--font);color:var(--dark);cursor:pointer;transition:background .15s;
-}
-.menu-btn:hover{background:#FFF0E8}
-.menu-btn.danger{color:#E05252}
+    /* bottom nav simplified */
+    .bottom-nav {
+      display: flex;
+      justify-content: space-around;
+      background: white;
+      padding: 10px 16px 14px;
+      border-top: 1px solid #f0e3d4;
+    }
+    .nav-item {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #b9aa97;
+      cursor: pointer;
+    }
+    .nav-item.active {
+      color: #FF6B35;
+    }
 
-/* ── Wheel ── */
-.wheel-wrapper{display:flex;justify-content:center;padding:14px 0 6px;position:relative}
-.arc-path{transition:all .25s;cursor:pointer}
-.arc-path:hover{filter:brightness(1.1)}
-.cauldron-center{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:108px;height:108px;background:white;border-radius:50%;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  box-shadow:0 0 0 4px white,0 0 28px rgba(255,107,53,.35);
-  cursor:pointer;transition:transform .15s,box-shadow .3s;user-select:none;
-}
-.cauldron-center:hover{transform:translate(-50%,-50%) scale(1.06)}
-.cauldron-center.bubbling{animation:cauldronPulse .8s ease-in-out infinite alternate}
-@keyframes cauldronPulse{
-  from{box-shadow:0 0 0 4px white,0 0 20px rgba(255,107,53,.3)}
-  to  {box-shadow:0 0 0 4px white,0 0 44px rgba(255,107,53,.75)}
-}
-.cauldron-emoji{font-size:36px;line-height:1}
-.cauldron-label{font-size:10px;font-weight:900;color:var(--dark);text-align:center;line-height:1.3;margin-top:3px}
-.bubbles{display:none;gap:3px;margin-top:4px}
-.bubble{width:5px;height:5px;border-radius:50%;background:var(--orange);animation:bubbleUp .8s ease-in-out infinite}
-.bubble:nth-child(2){animation-delay:.2s}.bubble:nth-child(3){animation-delay:.4s}
-@keyframes bubbleUp{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(-6px);opacity:.5}}
+    /* auth screen */
+    .auth-container {
+      padding: 40px 24px;
+      text-align: center;
+    }
+    button {
+      font-family: inherit;
+    }
+    .toast-msg {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a1a;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 13px;
+      z-index: 200;
+      opacity: 0;
+      transition: 0.2s;
+      pointer-events: none;
+    }
+    .toast-msg.show { opacity: 1; }
 
-/* Cat strip */
-.cat-strip{display:flex;overflow-x:auto;gap:8px;padding:4px 20px 10px;scrollbar-width:none}
-.cat-strip::-webkit-scrollbar{display:none}
-.cat-chip{
-  flex-shrink:0;padding:7px 16px;border-radius:20px;font-size:12px;
-  font-weight:700;color:white;cursor:pointer;opacity:.72;border:none;
-  transition:opacity .2s,transform .15s;
-}
-.cat-chip:hover{opacity:.9;transform:scale(1.03)}
-.cat-chip.active{opacity:1;transform:scale(1.05);box-shadow:0 3px 12px rgba(0,0,0,.18)}
-
-/* Pantry card */
-.pantry-card{
-  margin:0 20px 14px;background:white;border-radius:20px;
-  padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden;
-}
-.pantry-card-bar{position:absolute;top:0;left:0;right:0;height:4px;border-radius:20px 20px 0 0}
-.pantry-card-title{font-size:13px;font-weight:800;color:var(--dark);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
-.pill-grid{display:flex;flex-wrap:wrap;gap:8px;min-height:32px}
-.pill{
-  display:flex;align-items:center;gap:5px;background:#FFF8F0;
-  border:1.5px solid #FFE5CC;border-radius:20px;padding:6px 10px;
-  font-size:12px;font-weight:600;color:var(--dark);
-  cursor:pointer;transition:transform .15s,box-shadow .15s;
-}
-.pill:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.08)}
-.pill-check{width:15px;height:15px;border-radius:50%;background:#52B356;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;font-weight:900}
-.pill-skeleton{height:34px;width:90px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:20px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-
-/* Expiry warnings */
-.expiry-section{margin:0 20px 14px}
-.expiry-title{font-size:14px;font-weight:800;color:var(--dark);margin-bottom:8px}
-.expiry-card{background:#FFF8F0;border:1.5px solid #FFE5CC;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
-.expiry-card.urgent{background:#FFF0F0;border-color:#FFCCCC}
-.expiry-text{flex:1;font-size:12px;font-weight:600;color:var(--dark);line-height:1.5}
-.expiry-emoji{font-size:20px}
-.expiry-add-btn{background:var(--orange);border:none;border-radius:30px;padding:5px 12px;font-size:11px;font-weight:800;color:white;cursor:pointer;transition:filter .15s}
-.expiry-add-btn:hover{filter:brightness(1.1)}
-
-/* Add card */
-.add-card{margin:0 20px 14px;background:white;border-radius:20px;padding:16px;box-shadow:var(--shadow)}
-.add-card-title{font-size:14px;font-weight:800;color:var(--dark);margin-bottom:12px}
-.add-input{
-  width:100%;border:1.5px solid var(--border);border-radius:12px;
-  padding:10px 14px;font-size:14px;font-family:var(--font);color:var(--dark);
-  outline:none;margin-bottom:10px;transition:border-color .2s;background:white;
-}
-.add-input:focus{border-color:var(--orange)}
-.add-row{display:flex;gap:10px}
-.add-qty{width:80px}
-.add-btn{flex:1;border:none;border-radius:12px;color:white;font-weight:800;font-size:14px;font-family:var(--font);cursor:pointer;padding:10px 0;transition:filter .15s,transform .1s}
-.add-btn:hover{filter:brightness(1.08)}
-
-/* Consumption nudge */
-.nudge-card{margin:0 20px 14px;background:#FFF0E8;border-radius:20px;padding:14px;border-left:8px solid var(--orange)}
-.nudge-msg{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px}
-.nudge-sub{font-size:11px;color:#A05A3A}
-
-/* Loading */
-.loading-box{text-align:center;padding:24px 20px}
-.loading-box p{margin-top:10px;font-weight:700;color:var(--orange);font-size:14px}
-.spinner{width:34px;height:34px;border:3px solid #FFE5CC;border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* Recipes */
-.recipes-section{margin:0 20px 14px}
-.recipes-title{font-size:16px;font-weight:900;color:var(--dark);margin-bottom:12px;font-family:var(--serif)}
-.recipe-card{display:flex;background:white;border-radius:16px;overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);transition:transform .15s}
-.recipe-card:hover{transform:translateY(-2px)}
-.recipe-img{width:88px;height:88px;object-fit:cover;flex-shrink:0}
-.recipe-info{flex:1;padding:12px}
-.recipe-name{font-size:13px;font-weight:800;color:var(--dark);margin-bottom:3px}
-.recipe-used{font-size:11px;color:#777;margin-bottom:2px}
-.recipe-miss{font-size:11px;color:var(--orange);margin-bottom:6px}
-.recipe-actions{display:flex;gap:10px;margin-top:6px}
-.recipe-cta{font-size:11px;font-weight:800;color:var(--orange);cursor:pointer}
-.shopping-add{font-size:11px;font-weight:700;background:#E8F0FE;padding:3px 8px;border-radius:30px;color:#1A73E8;cursor:pointer;display:inline-block}
-
-/* Shopping list tab */
-.shopping-container{margin:0 20px 20px}
-.shopping-item{background:white;border-radius:16px;padding:12px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow)}
-.shopping-name{font-weight:800;color:var(--dark)}
-.shopping-delete{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);transition:color .15s}
-.shopping-delete:hover{color:#E05252}
-.empty-shopping{text-align:center;color:var(--muted);padding:30px;font-style:italic}
-
-/* Bottom nav */
-.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:white;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding-bottom:8px;box-shadow:0 -4px 16px rgba(0,0,0,.05);z-index:50}
-.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 10px;border-radius:12px;transition:background .15s}
-.nav-item:hover{background:#FFF0E8}
-.nav-item.active .nav-label{color:var(--orange);font-weight:800}
-.nav-emoji{font-size:20px}
-.nav-label{font-size:10px;color:var(--muted);font-weight:600}
-
-/* Tab content panels */
-.tab-panel{display:none}
-.tab-panel.active{display:block}
-
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-.anim-1{animation:fadeUp .35s ease both}
-.anim-2{animation:fadeUp .35s .08s ease both}
-.anim-3{animation:fadeUp .35s .16s ease both}
-.anim-4{animation:fadeUp .35s .24s ease both}
-.anim-5{animation:fadeUp .35s .32s ease both}
-</style>
+    /* loader */
+    .loader {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #ffe0c0;
+      border-top-color: #FF6B35;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
-<div class="phone">
-  <div class="status-bar">
-    <span id="clock">10:09</span>
-    <span>▐▐▐ 100% 🔋</span>
+<div class="phone" id="appContainer">
+  <div class="status-bar" id="statusBar">
+    <span>9:41</span>
+    <span>📶 🔋 100%</span>
   </div>
 
-  <!-- ── AUTH SCREEN ── -->
-  <div id="auth-screen">
-    <div class="auth-logo">🪄</div>
-    <div class="auth-title">Pantry Cauldron</div>
-    <div class="auth-sub">Your magical kitchen companion. Sign in to save your pantry.</div>
-
-    <!-- Google -->
-    <button class="oauth-btn google" onclick="signInWith('google')">
-      <svg class="oauth-icon" viewBox="0 0 24 24">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-      </svg>
-      Continue with Google
-    </button>
-
-    <!-- Facebook -->
-    <button class="oauth-btn facebook" onclick="signInWith('facebook')">
-      <svg class="oauth-icon" viewBox="0 0 24 24" fill="white">
-        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-      </svg>
-      Continue with Facebook
-    </button>
-
-    <div class="auth-divider">or</div>
-
-    <button class="email-toggle" onclick="toggleEmailForm()">Sign in with email instead</button>
-
-    <div id="email-form">
-      <input class="auth-input" id="auth-email"    type="email"    placeholder="Email address"/>
-      <input class="auth-input" id="auth-password" type="password" placeholder="Password (min 6 chars)"/>
-      <button class="auth-btn primary"   onclick="signInEmail()">Sign In</button>
-      <button class="auth-btn secondary" onclick="signUpEmail()">Create Account</button>
+  <!-- AUTH SECTION -->
+  <div id="authScreen" style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
+    <div class="auth-container">
+      <div style="font-size: 64px; margin-bottom: 16px;">🪄</div>
+      <h2 style="font-family: 'Inter'; margin-bottom: 24px;">Pantry Cauldron</h2>
+      <button id="googleBtn" style="background: white; border: none; padding: 12px 20px; border-radius: 60px; width: 100%; margin-bottom: 12px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">🔐 Sign in with Google</button>
+      <button id="fbBtn" style="background: #1877F2; color: white; border: none; padding: 12px 20px; border-radius: 60px; width: 100%; font-weight: 700;">📘 Sign in with Facebook</button>
+      <div id="authError" style="color: red; margin-top: 16px; font-size: 13px;"></div>
     </div>
-
-    <div class="auth-note">By continuing you agree to our Terms of Service. Your pantry data is private and only visible to you.</div>
-    <div id="auth-msg"></div>
-    <div id="auth-error"></div>
   </div>
 
-  <!-- ── APP SCREEN ── -->
-  <div id="app-screen">
-    <div id="user-menu">
-      <div class="menu-name" id="menu-name">Loading...</div>
-      <div class="menu-email" id="menu-email"></div>
-      <button class="menu-btn" onclick="closeMenu()">✏️ &nbsp;Edit Profile</button>
-      <button class="menu-btn" onclick="closeMenu()">⚙️ &nbsp;Allergies & Diet</button>
-      <button class="menu-btn danger" onclick="signOut()">🚪 &nbsp;Sign Out</button>
+  <!-- MAIN APP (hidden until auth) -->
+  <div id="mainApp" style="display: none; flex-direction: column; height: 100%;">
+    <div class="status-bar">
+      <span>Pantry Cauldron</span>
+      <div id="userAvatar" style="width: 32px; height: 32px; background: #FF6B35; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer;">👤</div>
     </div>
+    <div class="scroll-area" id="scrollArea">
+      <!-- Cauldron + magic stick SVG -->
+      <div class="cauldron-header">
+        <svg class="cauldron-svg" id="cauldronBtn" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Cauldron body -->
+          <ellipse cx="60" cy="70" rx="38" ry="24" fill="#3E2A1F" stroke="#1F140E" stroke-width="2"/>
+          <path d="M35 46 L85 46 C85 46 88 54 85 62 L35 62 C32 54 35 46 35 46Z" fill="#5C3E2A" stroke="#1F140E" stroke-width="1.5"/>
+          <!-- Magic stick -->
+          <line x1="78" y1="28" x2="96" y2="12" stroke="#D4AF37" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="96" cy="12" r="5" fill="#FFD966"/>
+          <!-- Stars -->
+          <path d="M68 36 L73 30 L78 36 L73 42 Z" fill="#FFD966"/>
+          <!-- Cauldron rim -->
+          <ellipse cx="60" cy="46" rx="34" ry="8" fill="#7A5A3A" stroke="#4A3420" stroke-width="1.5"/>
+          <!-- Bubbles inside -->
+          <circle cx="50" cy="60" r="3" fill="#D9B48B" opacity="0.8"/>
+          <circle cx="65" cy="58" r="4" fill="#D9B48B" opacity="0.8"/>
+          <circle cx="55" cy="66" r="2.5" fill="#D9B48B" opacity="0.6"/>
+        </svg>
+      </div>
 
-    <div class="app-header">
-      <span class="app-title">Pantry Cauldron</span>
-      <div id="user-avatar-wrap" onclick="toggleMenu(event)" style="cursor:pointer"></div>
+      <!-- Category row (instead of wheel) -->
+      <div class="categories-row" id="categoryRow"></div>
+
+      <!-- Subcategory grid appears here -->
+      <div id="subcatContainer"></div>
+
+      <!-- Missing ingredients + share panel -->
+      <div class="missing-section" id="missingPanel">
+        <div class="missing-title">
+          📋 Missing ingredients
+          <span style="font-size: 12px; background: #FF6B35; color: white; padding: 2px 8px; border-radius: 20px;" id="missingCount">0</span>
+        </div>
+        <div class="missing-items" id="missingListText">Nothing missing yet. Toggle off items you don't have.</div>
+        <div class="share-buttons">
+          <button id="copyMissingBtn" class="share-btn copy-btn">📋 Copy list</button>
+          <button id="shareMissingBtn" class="share-btn">📱 Share (WhatsApp, Messenger...)</button>
+        </div>
+      </div>
+      <div class="loader" id="loader"><div class="spinner"></div><span style="font-size:12px;">Syncing...</span></div>
     </div>
-
-    <!-- Tab Content Panels -->
-    <div class="scroll-area" id="scroll-area">
-      <!-- Home Tab -->
-      <div id="tab-home" class="tab-panel active">
-        <div class="wheel-wrapper">
-          <svg id="wheel-svg" width="320" height="320" viewBox="0 0 320 320"></svg>
-          <div class="cauldron-center" id="cauldron" onclick="triggerCauldron()">
-            <span class="cauldron-emoji">🪄</span>
-            <span class="cauldron-label" id="cauldron-label">Suggest<br>Recipes</span>
-            <div class="bubbles" id="bubbles">
-              <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Consumption nudge card -->
-        <div id="nudge-container" class="nudge-card" style="display:none"></div>
-
-        <div class="cat-strip" id="cat-strip"></div>
-
-        <div class="pantry-card">
-          <div class="pantry-card-bar" id="cat-bar"></div>
-          <div class="pantry-card-title" id="cat-title"></div>
-          <div class="pill-grid" id="pill-grid">
-            <div class="pill-skeleton"></div><div class="pill-skeleton"></div><div class="pill-skeleton"></div>
-          </div>
-        </div>
-
-        <div class="expiry-section" id="expiry-section" style="display:none">
-          <div class="expiry-title">⚠️ Heads up!</div>
-          <div id="expiry-list"></div>
-        </div>
-
-        <div class="add-card">
-          <div class="add-card-title">➕ Add to Pantry</div>
-          <input class="add-input" id="item-name" placeholder="Item name (e.g. Strawberries)"/>
-          <div class="add-row">
-            <input class="add-input add-qty" id="item-qty" placeholder="Qty" type="number" value="1"/>
-            <button class="add-btn" id="add-btn" onclick="addItem()">Add</button>
-          </div>
-        </div>
-
-        <div class="loading-box" id="loading-box" style="display:none">
-          <div class="spinner"></div>
-          <p>The cauldron is bubbling... ✨</p>
-        </div>
-
-        <div class="recipes-section" id="recipes-section" style="display:none">
-          <div class="recipes-title">✨ Cauldron Suggestions</div>
-          <div id="recipes-list"></div>
-        </div>
-      </div>
-
-      <!-- Pantry Tab (same as home pantry section but full) -->
-      <div id="tab-pantry" class="tab-panel">
-        <div class="cat-strip" id="pantry-cat-strip"></div>
-        <div class="pantry-card" style="margin-top:10px">
-          <div class="pantry-card-title" id="pantry-cat-title">All Items</div>
-          <div class="pill-grid" id="pantry-full-grid"></div>
-        </div>
-        <div class="add-card">
-          <div class="add-card-title">➕ Add to Pantry</div>
-          <input class="add-input" id="pantry-item-name" placeholder="Item name"/>
-          <div class="add-row">
-            <input class="add-input add-qty" id="pantry-item-qty" placeholder="Qty" type="number" value="1"/>
-            <button class="add-btn" id="pantry-add-btn" onclick="addItemFromPantryTab()">Add</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Recipes Tab (saved recipes placeholder) -->
-      <div id="tab-recipes" class="tab-panel">
-        <div style="padding:20px;text-align:center;color:var(--muted)">📖 Saved recipes will appear here soon.<br>Tap the cauldron to generate new suggestions!</div>
-      </div>
-
-      <!-- Reminders Tab (consumption nudge + expiry) -->
-      <div id="tab-reminders" class="tab-panel">
-        <div id="reminder-nudge" class="nudge-card" style="display:none;margin-top:20px"></div>
-        <div class="expiry-section" id="reminder-expiry" style="margin-top:20px">
-          <div class="expiry-title">⏰ Expiring Soon</div>
-          <div id="reminder-expiry-list"></div>
-        </div>
-      </div>
-
-      <!-- Shopping List Tab -->
-      <div id="tab-shopping" class="tab-panel">
-        <div class="shopping-container">
-          <div class="add-card" style="margin-bottom:16px">
-            <div class="add-card-title">➕ Add Shopping Item</div>
-            <div class="add-row">
-              <input class="add-input" id="shopping-new-name" placeholder="e.g., Avocado"/>
-              <button class="add-btn" onclick="addShoppingItem()">Add</button>
-            </div>
-          </div>
-          <div id="shopping-list-container"></div>
-        </div>
-      </div>
-
-    </div>
-
     <div class="bottom-nav">
-      <div class="nav-item active" data-tab="home"><span class="nav-emoji">🏠</span><span class="nav-label">Home</span></div>
-      <div class="nav-item"        data-tab="pantry"><span class="nav-emoji">🥘</span><span class="nav-label">Pantry</span></div>
-      <div class="nav-item"        data-tab="recipes"><span class="nav-emoji">📖</span><span class="nav-label">Recipes</span></div>
-      <div class="nav-item"        data-tab="reminders"><span class="nav-emoji">⏰</span><span class="nav-label">Reminders</span></div>
-      <div class="nav-item"        data-tab="shopping"><span class="nav-emoji">🛒</span><span class="nav-label">List</span></div>
+      <div class="nav-item active" data-tab="ingredients">🧂 Ingredients</div>
+      <div class="nav-item" data-tab="recipes">🍲 Recipes</div>
+      <div class="nav-item" data-tab="shopping">🛒 Shopping List</div>
     </div>
   </div>
-
-  <div id="toast"></div>
+  <div id="toastMessage" class="toast-msg"></div>
 </div>
 
 <script>
-// ================================ SUPABASE =====================================
-const SUPA_URL = 'https://ultcwpsxdqoztyhjjujq.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsdGN3cHN4ZHFvenR5aGpqdWpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDM5MzcsImV4cCI6MjA5Mjc3OTkzN30.JpHD4A6ubMBkF7aDat83taXM3qB2L5XIE1Q0tqbz3-o';
-const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+  // ---------- SUPABASE ----------
+  const SUPABASE_URL = 'https://ultcwpsxdqoztyhjjujq.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsdGN3cHN4ZHFvenR5aGpqdWpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDM5MzcsImV4cCI6MjA5Mjc3OTkzN30.JpHD4A6ubMBkF7aDat83taXM3qB2L5XIE1Q0tqbz3-o';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ⚠️ IMPORTANT: In production, move this key to a Supabase Edge Function (see to-do list)
-const SPOONACULAR_KEY = '45ad654126f544a6b6d74230b8d281b1';
+  let currentUser = null;
+  let pantryItems = [];     // array of {id, name, category, subcategory, quantity, unit, have}
+  let selectedMainCat = "Vegetables";
 
-// ================================ GLOBALS ======================================
-let currentUser = null, pantry = [], selectedCat = 'Fruits', shoppingItems = [];
-
-const CATEGORIES = [
-  { label:'Fruits',       emoji:'🍎', color:'#F5C842', startDeg:-90, endDeg:-30 },
-  { label:'Dairy & Fish', emoji:'🐟', color:'#4BAEE8', startDeg:-30, endDeg: 30 },
-  { label:'Spices',       emoji:'🌶️', color:'#F4883E', startDeg: 30, endDeg: 90 },
-  { label:'Essentials',   emoji:'🥫', color:'#A07850', startDeg: 90, endDeg:150 },
-  { label:'Other',        emoji:'🧴', color:'#9B6EC8', startDeg:150, endDeg:210 },
-  { label:'Vegetables',   emoji:'🥦', color:'#52B356', startDeg:210, endDeg:270 },
-  { label:'Meat',         emoji:'🥩', color:'#E05252', startDeg:270, endDeg:330 },
-];
-
-const EMOJI = {
-  'Red Apples':'🍎','Green Apples':'🍏','Lemons':'🍋','Bananas':'🍌',
-  'Oranges':'🍊','Grapes':'🍇','Cherry Tomatoes':'🍅','Pears':'🍐',
-  'Chicken':'🍗','Salmon':'🐟','Cheddar':'🧀','Milk':'🥛',
-  'Broccoli':'🥦','Spinach':'🌿','Carrots':'🥕','Eggs':'🥚',
-};
-
-// SEEDS now have proper categories
-const SEEDS = [
-  {name:'Red Apples',category:'Fruits',quantity:4,unit:'pieces',shelf_life_days:7},
-  {name:'Green Apples',category:'Fruits',quantity:3,unit:'pieces',shelf_life_days:7},
-  {name:'Lemons',category:'Fruits',quantity:2,unit:'pieces',shelf_life_days:14},
-  {name:'Bananas',category:'Fruits',quantity:5,unit:'pieces',shelf_life_days:5},
-  {name:'Oranges',category:'Fruits',quantity:6,unit:'pieces',shelf_life_days:14},
-  {name:'Grapes',category:'Fruits',quantity:1,unit:'bunch',shelf_life_days:5},
-  {name:'Cherry Tomatoes',category:'Vegetables',quantity:20,unit:'pieces',shelf_life_days:5},
-  {name:'Pears',category:'Fruits',quantity:3,unit:'pieces',shelf_life_days:7},
-  {name:'Broccoli',category:'Vegetables',quantity:2,unit:'heads',shelf_life_days:5},
-  {name:'Spinach',category:'Vegetables',quantity:1,unit:'bag',shelf_life_days:4},
-  {name:'Carrots',category:'Vegetables',quantity:6,unit:'pieces',shelf_life_days:10},
-  {name:'Eggs',category:'Dairy & Fish',quantity:12,unit:'pieces',shelf_life_days:21},
-  {name:'Milk',category:'Dairy & Fish',quantity:1,unit:'liter',shelf_life_days:7},
-];
-
-// ================================ HELPERS =======================================
-function toast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2800);
-}
-
-function clockTick(){
-  const n=new Date();
-  document.getElementById('clock').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
-}
-setInterval(clockTick,10000); clockTick();
-
-// ================================ AUTH ==========================================
-function setErr(m){document.getElementById('auth-error').textContent=m}
-function setMsg(m){document.getElementById('auth-msg').textContent=m}
-
-function toggleEmailForm(){
-  document.getElementById('email-form').classList.toggle('open');
-}
-
-async function signInWith(provider){
-  setErr(''); setMsg('Redirecting...');
-  const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.href } });
-  if(error){ setMsg(''); setErr(error.message); }
-}
-
-async function signInEmail(){
-  setErr(''); setMsg('Signing in...');
-  const email=document.getElementById('auth-email').value.trim();
-  const pw=document.getElementById('auth-password').value;
-  if(!email||!pw){ setMsg(''); setErr('Enter email and password.'); return; }
-  const {error}=await sb.auth.signInWithPassword({email,password:pw});
-  if(error){ setMsg(''); setErr(error.message); return; }
-}
-
-async function signUpEmail(){
-  setErr(''); setMsg('Creating account...');
-  const email=document.getElementById('auth-email').value.trim();
-  const pw=document.getElementById('auth-password').value;
-  if(!email||!pw){ setMsg(''); setErr('Enter email and password.'); return; }
-  if(pw.length<6){ setMsg(''); setErr('Password must be at least 6 characters.'); return; }
-  const {error}=await sb.auth.signUp({email,password:pw});
-  if(error){ setMsg(''); setErr(error.message); return; }
-  setMsg('✅ Check your email to confirm your account!');
-}
-
-async function signOut(){
-  closeMenu();
-  await sb.auth.signOut();
-  currentUser=null; pantry=[];
-  document.getElementById('app-screen').style.display='none';
-  document.getElementById('auth-screen').style.display='flex';
-  toast('Signed out 👋');
-}
-
-function onSignedIn(user){
-  currentUser=user;
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('app-screen').style.display='block';
-
-  const wrap=document.getElementById('user-avatar-wrap');
-  const meta=user.user_metadata||{};
-  const name=meta.full_name||meta.name||user.email?.split('@')[0]||'You';
-  const avatar=meta.avatar_url||meta.picture||null;
-  document.getElementById('menu-name').textContent=name;
-  document.getElementById('menu-email').textContent=user.email||'OAuth user';
-  if(avatar){
-    wrap.innerHTML=`<img class="user-avatar" src="${avatar}" alt="${name}" onclick="toggleMenu(event)"/>`;
-  } else {
-    const initials=name.slice(0,2).toUpperCase();
-    wrap.innerHTML=`<div class="user-initials" onclick="toggleMenu(event)">${initials}</div>`;
-  }
-
-  loadPantry();
-  loadShoppingList();
-  loadConsumptionNudge();
-}
-
-function toggleMenu(e){
-  if(e) e.stopPropagation();
-  document.getElementById('user-menu').classList.toggle('open');
-}
-function closeMenu(){
-  document.getElementById('user-menu').classList.remove('open');
-}
-document.addEventListener('click', e=>{
-  const menu=document.getElementById('user-menu');
-  const wrap=document.getElementById('user-avatar-wrap');
-  if(menu && wrap && !menu.contains(e.target) && !wrap.contains(e.target)) closeMenu();
-});
-
-// ================================ PANTRY ========================================
-async function loadPantry(){
-  showSkeletons();
-  const {data,error}=await sb.from('pantry_items').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
-  if(error){
-    toast('⚠️ DB error — showing demo data'); pantry=SEEDS.slice();
-  } else if(!data||data.length===0){
-    const seeds=SEEDS.map(i=>({...i,user_id:currentUser.id,added_date:new Date().toISOString()}));
-    const {data:ins}=await sb.from('pantry_items').insert(seeds).select();
-    pantry=ins||seeds;
-    toast('✨ Welcome! Sample pantry loaded.');
-  } else {
-    pantry=data;
-  }
-
-  pantry.forEach(item=>{
-    if(item.added_date&&item.shelf_life_days){
-      const exp=new Date(item.added_date).getTime()+item.shelf_life_days*86400000;
-      item._daysLeft=Math.ceil((exp-Date.now())/86400000);
-    } else item._daysLeft=99;
-  });
-
-  renderAllTabs();
-  checkExpiry();
-  loadConsumptionNudge();
-}
-
-async function addItem(){
-  const name=document.getElementById('item-name').value.trim();
-  const qty=parseInt(document.getElementById('item-qty').value)||1;
-  if(!name){document.getElementById('item-name').focus();return;}
-  const row={user_id:currentUser.id,name,category:selectedCat, quantity:qty, unit:'piece', shelf_life_days:7, added_date:new Date().toISOString()};
-  const {data,error}=await sb.from('pantry_items').insert([row]).select();
-  if(error){toast('❌ '+error.message);return;}
-  const saved=data?.[0]||row; saved._daysLeft=7;
-  pantry.unshift(saved);
-  document.getElementById('item-name').value='';
-  document.getElementById('item-qty').value='1';
-  toast('✅ '+name+' added!'); renderAllTabs();
-}
-
-function addItemFromPantryTab(){
-  const name=document.getElementById('pantry-item-name').value.trim();
-  const qty=parseInt(document.getElementById('pantry-item-qty').value)||1;
-  if(!name){document.getElementById('pantry-item-name').focus();return;}
-  (async()=>{
-    const row={user_id:currentUser.id,name,category:selectedCat, quantity:qty, unit:'piece', shelf_life_days:7, added_date:new Date().toISOString()};
-    const {error}=await sb.from('pantry_items').insert([row]);
-    if(error){toast('❌ '+error.message);return;}
-    document.getElementById('pantry-item-name').value='';
-    document.getElementById('pantry-item-qty').value='1';
-    await loadPantry();
-    toast('✅ '+name+' added!');
-  })();
-}
-
-function showSkeletons(){
-  document.getElementById('pill-grid').innerHTML='<div class="pill-skeleton"></div><div class="pill-skeleton"></div><div class="pill-skeleton"></div>';
-}
-
-// ================================ EXPIRY & NUDGES ================================
-async function checkExpiry(){
-  const warn=pantry.filter(i=>i._daysLeft!==undefined&&i._daysLeft<=2);
-  const sec=document.getElementById('expiry-section');
-  const list=document.getElementById('expiry-list');
-  const reminderList=document.getElementById('reminder-expiry-list');
-  if(!warn.length){
-    if(sec) sec.style.display='none';
-    if(reminderList) reminderList.innerHTML='<div class="empty-shopping">🎉 Nothing expiring soon!</div>';
-    return;
-  }
-  if(sec) sec.style.display='block';
-  const html=warn.map(item=>{
-    const u=item._daysLeft<=0;
-    const msg=u ? `Hey! Your <strong>${item.name}</strong> has expired 😬` : `Your <strong>${item.name}</strong> expires in <strong>${item._daysLeft} day${item._daysLeft===1?'':'s'}</strong>.`;
-    return `<div class="expiry-card ${u?'urgent':''}">
-      <span class="expiry-emoji">${u?'🚨':'⏳'}</span>
-      <span class="expiry-text">${msg}</span>
-      <button class="expiry-add-btn" onclick="quickAddToShopping('${item.name.replace(/'/g,"\\'")}')">🛒 Add to list</button>
-    </div>`;
-  }).join('');
-  if(list) list.innerHTML=html;
-  if(reminderList) reminderList.innerHTML=html;
-}
-
-function quickAddToShopping(itemName){
-  addShoppingItemByName(itemName);
-}
-
-async function loadConsumptionNudge(){
-  if(!currentUser) return;
-  const {data,error}=await sb.rpc('check_consumption_nudge', { p_user_id: currentUser.id });
-  if(error || !data || data.length===0) return;
-  const nudge=data[0];
-  const msg = nudge.egg_msg || nudge.veggie_msg;
-  if(!msg) return;
-  const nudgeDiv=document.getElementById('nudge-container');
-  const reminderNudge=document.getElementById('reminder-nudge');
-  if(nudgeDiv){
-    nudgeDiv.style.display='block';
-    nudgeDiv.innerHTML=`<div class="nudge-msg">🥚✨ ${msg}</div><div class="nudge-sub">Keep up the great cooking!</div>`;
-  }
-  if(reminderNudge){
-    reminderNudge.style.display='block';
-    reminderNudge.innerHTML=`<div class="nudge-msg">🥚✨ ${msg}</div><div class="nudge-sub">Check your consumption stats in your profile soon.</div>`;
-  }
-}
-
-// ================================ SHOPPING LIST ==================================
-async function loadShoppingList(){
-  if(!currentUser) return;
-  const {data,error}=await sb.from('shopping_list').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
-  if(error){console.error(error); return;}
-  shoppingItems=data||[];
-  renderShoppingList();
-}
-
-function renderShoppingList(){
-  const container=document.getElementById('shopping-list-container');
-  if(!container) return;
-  if(!shoppingItems.length){
-    container.innerHTML='<div class="empty-shopping">🛒 Your shopping list is empty. Add items from expiring goods or missing recipe ingredients.</div>';
-    return;
-  }
-  container.innerHTML=shoppingItems.map(item=>`
-    <div class="shopping-item">
-      <span class="shopping-name">${escapeHtml(item.name)}</span>
-      <button class="shopping-delete" onclick="removeShoppingItem('${item.id}')">🗑️</button>
-    </div>
-  `).join('');
-}
-
-async function addShoppingItem(){
-  const name=document.getElementById('shopping-new-name').value.trim();
-  if(!name) return;
-  await addShoppingItemByName(name);
-  document.getElementById('shopping-new-name').value='';
-}
-
-async function addShoppingItemByName(name){
-  if(!currentUser) return;
-  const {data,error}=await sb.from('shopping_list').insert([{user_id:currentUser.id, name}]).select();
-  if(error){toast('❌ '+error.message); return;}
-  toast(`🛒 ${name} added to shopping list`);
-  await loadShoppingList();
-}
-
-async function removeShoppingItem(id){
-  const {error}=await sb.from('shopping_list').delete().eq('id',id).eq('user_id',currentUser.id);
-  if(error){toast('❌ '+error.message); return;}
-  toast('Removed from list');
-  await loadShoppingList();
-}
-
-function escapeHtml(str){
-  return str.replace(/[&<>]/g, function(m){
-    if(m==='&') return '&amp;';
-    if(m==='<') return '&lt;';
-    if(m==='>') return '&gt;';
-    return m;
-  });
-}
-
-// ================================ CAULDRON & RECIPES =============================
-async function triggerCauldron(){
-  const el=document.getElementById('cauldron');
-  const lbl=document.getElementById('cauldron-label');
-  const bub=document.getElementById('bubbles');
-  el.classList.add('bubbling'); lbl.textContent='Bubbling...'; bub.style.display='flex';
-  document.getElementById('loading-box').style.display='block';
-  document.getElementById('recipes-section').style.display='none';
-
-  try {
-    const ingredients = pantry.map(i=>i.name).join(',+');
-    const url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredients)}&number=5&ranking=1&ignorePantry=true&apiKey=${SPOONACULAR_KEY}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if(!data || data.status === 'failure' || !data.length){
-      toast('⚠️ No recipes found — try adding more ingredients!');
-      stopBubbling(); return;
+  // ---------- DATA MODEL: categories + subcategories with emoji & default unit ----------
+  const categoryTree = {
+    "Vegetables": {
+      color: "#52B356", emoji: "🥦",
+      subs: [
+        { name: "Spinach", emoji: "🌿", unit: "grams", defaultQty: 200 },
+        { name: "Broccoli", emoji: "🥦", unit: "grams", defaultQty: 300 },
+        { name: "Kale", emoji: "🥬", unit: "grams", defaultQty: 150 },
+        { name: "Peas", emoji: "🟢", unit: "grams", defaultQty: 200 },
+        { name: "Carrots", emoji: "🥕", unit: "pieces", defaultQty: 4 },
+        { name: "Zucchini", emoji: "🥒", unit: "pieces", defaultQty: 2 }
+      ]
+    },
+    "Fruits": {
+      color: "#F5C542", emoji: "🍎",
+      subs: [
+        { name: "Lemon", emoji: "🍋", unit: "pieces", defaultQty: 2 },
+        { name: "Apple", emoji: "🍎", unit: "pieces", defaultQty: 3 },
+        { name: "Banana", emoji: "🍌", unit: "pieces", defaultQty: 4 },
+        { name: "Orange", emoji: "🍊", unit: "pieces", defaultQty: 3 },
+        { name: "Grapes", emoji: "🍇", unit: "grams", defaultQty: 300 },
+        { name: "Strawberry", emoji: "🍓", unit: "grams", defaultQty: 250 }
+      ]
+    },
+    "Meat": {
+      color: "#E05252", emoji: "🥩",
+      subs: [
+        { name: "Chicken", emoji: "🍗", unit: "grams", defaultQty: 500 },
+        { name: "Pork", emoji: "🐖", unit: "grams", defaultQty: 400 },
+        { name: "Lamb", emoji: "🐑", unit: "grams", defaultQty: 400 },
+        { name: "Beef", emoji: "🥩", unit: "grams", defaultQty: 500 }
+      ]
+    },
+    "Dairy": {
+      color: "#4BAEE8", emoji: "🥛",
+      subs: [
+        { name: "Milk", emoji: "🥛", unit: "liters", defaultQty: 1 },
+        { name: "Yogurt", emoji: "🥄", unit: "grams", defaultQty: 400 },
+        { name: "Gouda Cheese", emoji: "🧀", unit: "grams", defaultQty: 200 },
+        { name: "Edamer Cheese", emoji: "🧀", unit: "grams", defaultQty: 200 },
+        { name: "Blue Cheese", emoji: "🧀", unit: "grams", defaultQty: 150 },
+        { name: "Butter", emoji: "🧈", unit: "grams", defaultQty: 250 }
+      ]
+    },
+    "Fish": {
+      color: "#3A9BD5", emoji: "🐟",
+      subs: [
+        { name: "Salmon", emoji: "🐟", unit: "grams", defaultQty: 300 },
+        { name: "Tuna (canned)", emoji: "🥫", unit: "cans", defaultQty: 2 },
+        { name: "Cod", emoji: "🐠", unit: "grams", defaultQty: 400 },
+        { name: "Sardines", emoji: "🐟", unit: "cans", defaultQty: 1 }
+      ]
+    },
+    "Spices": {
+      color: "#F4883E", emoji: "🌶️",
+      subs: [
+        { name: "Paprika", emoji: "🌶️", unit: "tbsp", defaultQty: 2 },
+        { name: "Cumin", emoji: "🌿", unit: "tbsp", defaultQty: 1 },
+        { name: "Oregano", emoji: "🌿", unit: "tbsp", defaultQty: 1 },
+        { name: "Salt", emoji: "🧂", unit: "tbsp", defaultQty: 3 }
+      ]
+    },
+    "Essentials": {
+      color: "#A07850", emoji: "🥫",
+      subs: [
+        { name: "Rice", emoji: "🍚", unit: "grams", defaultQty: 1000 },
+        { name: "Pasta", emoji: "🍝", unit: "grams", defaultQty: 500 },
+        { name: "Olive Oil", emoji: "🫒", unit: "liters", defaultQty: 1 },
+        { name: "Flour", emoji: "🌾", unit: "grams", defaultQty: 1000 }
+      ]
+    },
+    "Other": {
+      color: "#9B6EC8", emoji: "🧴",
+      subs: [
+        { name: "Honey", emoji: "🍯", unit: "grams", defaultQty: 300 },
+        { name: "Vinegar", emoji: "🍶", unit: "ml", defaultQty: 500 },
+        { name: "Nuts", emoji: "🌰", unit: "grams", defaultQty: 200 }
+      ]
     }
-    const recipes = data.map(r=>({
-      id: r.id,
-      title: r.title,
-      img: r.image,
-      used: r.usedIngredients.map(i=>i.name),
-      miss: r.missedIngredients.map(i=>i.name),
-      sourceName: r.sourceName || 'Spoonacular',
-      sourceUrl: r.sourceUrl || `https://spoonacular.com/recipes/${r.title.replace(/ /g,'-')}-${r.id}`
-    }));
-    stopBubbling();
-    renderRecipes(recipes);
-  } catch(err){
-    toast('⚠️ Could not reach recipe API. Check your connection.');
-    stopBubbling();
+  };
+
+  // Helper: show toast
+  function toast(msg) {
+    const el = document.getElementById('toastMessage');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2500);
   }
-}
 
-function stopBubbling(){
-  const el=document.getElementById('cauldron');
-  const lbl=document.getElementById('cauldron-label');
-  const bub=document.getElementById('bubbles');
-  el.classList.remove('bubbling');
-  lbl.innerHTML='Suggest<br>Recipes';
-  bub.style.display='none';
-  document.getElementById('loading-box').style.display='none';
-}
+  // Auth handlers
+  async function signInWith(provider) {
+    const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.href } });
+    if (error) document.getElementById('authError').innerText = error.message;
+  }
+  document.getElementById('googleBtn')?.addEventListener('click', () => signInWith('google'));
+  document.getElementById('fbBtn')?.addEventListener('click', () => signInWith('facebook'));
 
-function renderRecipes(list){
-  const sec=document.getElementById('recipes-section');
-  sec.style.display='block';
-  document.getElementById('recipes-list').innerHTML=list.map(r=>`
-    <div class="recipe-card">
-      <img class="recipe-img" src="${r.img}" alt="${r.title}" loading="lazy"/>
-      <div class="recipe-info">
-        <div class="recipe-name">${escapeHtml(r.title)}</div>
-        <div class="recipe-used">Using: ${r.used.join(', ')}</div>
-        ${r.miss.length ? `<div class="recipe-miss">Need: ${r.miss.join(', ')}</div>` : '<div class="recipe-miss">You have everything! 🎉</div>'}
-        <div class="recipe-actions">
-          <span class="recipe-cta" onclick="cookThis(${r.id}, '${escapeHtml(r.title).replace(/'/g,"\\'")}', ${JSON.stringify(r.used)})">🔥 Cook This</span>
-          ${r.miss.length ? `<span class="shopping-add" onclick="addMissingToShopping('${r.miss.map(m=>escapeHtml(m)).join(',').replace(/'/g,"\\'")}')">➕ Add missing to list</span>` : ''}
-        </div>
-        <div class="recipe-source" style="font-size:10px;color:#999;margin-top:6px">
-          Recipe from: <a href="${r.sourceUrl}" target="_blank" style="color:#FF6B35;text-decoration:none">${r.sourceName}</a>
-        </div>
-      </div>
-    </div>
-  `).join('');
-  sec.scrollIntoView({behavior:'smooth',block:'start'});
-}
+  async function loadPantryItems() {
+    if (!currentUser) return [];
+    const { data, error } = await sb.from('pantry_items').select('*').eq('user_id', currentUser.id);
+    if (error) console.error(error);
+    return data || [];
+  }
 
-function addMissingToShopping(missingStr){
-  const items = missingStr.split(',');
-  items.forEach(async item=>{
-    await addShoppingItemByName(item.trim());
-  });
-  toast(`🛒 ${items.length} item(s) added to shopping list`);
-}
+  async function savePantryItem(item) {
+    if (!currentUser) return;
+    // item: {name, category, subcategory, quantity, unit, have}
+    const existing = pantryItems.find(i => i.name === item.name && i.category === item.category);
+    if (existing) {
+      const { error } = await sb.from('pantry_items').update({
+        quantity: item.quantity,
+        have: item.have
+      }).eq('id', existing.id);
+      if (error) toast("⚠️ Update error");
+    } else {
+      const { error } = await sb.from('pantry_items').insert([{
+        user_id: currentUser.id,
+        name: item.name,
+        category: item.category,
+        subcategory: item.subcategory,
+        quantity: item.quantity,
+        unit: item.unit,
+        have: item.have,
+        added_date: new Date().toISOString(),
+        shelf_life_days: 14
+      }]);
+      if (error) toast("⚠️ Insert error");
+    }
+    await refreshPantryAndUI();
+  }
 
-async function cookThis(recipeId, recipeTitle, usedIngredients){
-  const confirmed = confirm(`Cook "${recipeTitle}"?\n\nThis will subtract the ingredients from your pantry and log the meal.`);
-  if(!confirmed) return;
-  const ingredients = usedIngredients.map(name=>({name, quantity:1, unit:'piece'}));
-  const {error} = await sb.rpc('cook_recipe', { p_recipe_id: recipeId.toString(), p_recipe_title: recipeTitle, p_ingredients: ingredients });
-  if(error){ toast('❌ '+error.message); return; }
-  toast('🍽️ Delicious! Pantry updated.');
-  loadPantry();
-}
+  async function refreshPantryAndUI() {
+    if (!currentUser) return;
+    const data = await loadPantryItems();
+    pantryItems = data.map(p => ({ ...p, have: p.have !== undefined ? p.have : true, quantity: p.quantity || 0 }));
+    renderSubcategories();
+    updateMissingList();
+  }
 
-// ================================ WHEEL & UI =====================================
-const NS='http://www.w3.org/2000/svg', CX=160, CY=160, OR=154, IR=60, GAP=3;
-function polar(r,d){const a=(d-90)*Math.PI/180; return [CX+r*Math.cos(a), CY+r*Math.sin(a)];}
-function arc(s,e){
-  const[x1,y1]=polar(OR,s+GAP),[x2,y2]=polar(OR,e-GAP);
-  const[x3,y3]=polar(IR,e-GAP),[x4,y4]=polar(IR,s+GAP);
-  const lg=(e-s)>180?1:0;
-  return `M${x1} ${y1} A${OR} ${OR} 0 ${lg} 1 ${x2} ${y2} L${x3} ${y3} A${IR} ${IR} 0 ${lg} 0 ${x4} ${y4}Z`;
-}
-function mid(s,e){return polar((OR+IR)/2,(s+e)/2);}
-
-function drawWheel(){
-  const svg=document.getElementById('wheel-svg'); if(!svg) return;
-  svg.innerHTML='';
-  CATEGORIES.forEach(cat=>{
-    const on=cat.label===selectedCat;
-    const g=document.createElementNS(NS,'g');
-    const p=document.createElementNS(NS,'path');
-    p.setAttribute('d',arc(cat.startDeg,cat.endDeg));
-    p.setAttribute('fill',cat.color); p.setAttribute('opacity',on?'1':'0.78');
-    p.setAttribute('stroke','white'); p.setAttribute('stroke-width',on?'3':'1.5');
-    p.classList.add('arc-path');
-    const[lx,ly]=mid(cat.startDeg,cat.endDeg);
-    const te=document.createElementNS(NS,'text');
-    te.setAttribute('x',lx);te.setAttribute('y',ly-11);
-    te.setAttribute('text-anchor','middle');te.setAttribute('dominant-baseline','middle');
-    te.setAttribute('font-size',on?'22':'18');te.textContent=cat.emoji;
-    const tl=document.createElementNS(NS,'text');
-    tl.setAttribute('x',lx);tl.setAttribute('y',ly+12);
-    tl.setAttribute('text-anchor','middle');tl.setAttribute('font-size',on?'9.5':'8.5');
-    tl.setAttribute('font-weight',on?'bold':'normal');
-    tl.setAttribute('font-family','Nunito,sans-serif');tl.setAttribute('fill','white');
-    tl.textContent=cat.label;
-    g.appendChild(p);g.appendChild(te);g.appendChild(tl);
-    g.style.cursor='pointer';
-    g.addEventListener('click',()=>{ selectedCat=cat.label; renderAllTabs(); });
-    svg.appendChild(g);
-  });
-  const c=document.createElementNS(NS,'circle');
-  c.setAttribute('cx',CX);c.setAttribute('cy',CY);c.setAttribute('r',IR+2);c.setAttribute('fill','white');
-  svg.appendChild(c);
-}
-
-function renderStrip(){
-  const el=document.getElementById('cat-strip'); if(!el) return;
-  el.innerHTML='';
-  CATEGORIES.forEach(cat=>{
-    const b=document.createElement('button');
-    b.className='cat-chip'+(cat.label===selectedCat?' active':'');
-    b.style.background=cat.color; b.textContent=cat.emoji+' '+cat.label;
-    b.onclick=()=>{ selectedCat=cat.label; renderAllTabs(); };
-    el.appendChild(b);
-  });
-  // also pantry strip
-  const pStrip=document.getElementById('pantry-cat-strip');
-  if(pStrip){
-    pStrip.innerHTML='';
-    CATEGORIES.forEach(cat=>{
-      const b=document.createElement('button');
-      b.className='cat-chip'+(cat.label===selectedCat?' active':'');
-      b.style.background=cat.color; b.textContent=cat.emoji+' '+cat.label;
-      b.onclick=()=>{ selectedCat=cat.label; renderAllTabs(); };
-      pStrip.appendChild(b);
+  // Render category row
+  function renderCategories() {
+    const row = document.getElementById('categoryRow');
+    if (!row) return;
+    row.innerHTML = '';
+    Object.keys(categoryTree).forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = `cat-btn cat-${cat}${selectedMainCat === cat ? ' active' : ''}`;
+      btn.style.backgroundColor = selectedMainCat === cat ? categoryTree[cat].color : '#f0e3d4';
+      btn.style.color = selectedMainCat === cat ? 'white' : '#4a3b2c';
+      btn.innerHTML = `${categoryTree[cat].emoji} ${cat}`;
+      btn.onclick = () => {
+        selectedMainCat = cat;
+        renderCategories();
+        renderSubcategories();
+      };
+      row.appendChild(btn);
     });
   }
-}
 
-function renderPantry(){
-  const cat=CATEGORIES.find(c=>c.label===selectedCat);
-  const bar=document.getElementById('cat-bar'); if(bar) bar.style.background=cat.color;
-  const addBtn=document.getElementById('add-btn'); if(addBtn) addBtn.style.background=cat.color;
-  const title=document.getElementById('cat-title'); if(title) title.textContent=selectedCat;
-  const fullTitle=document.getElementById('pantry-cat-title'); if(fullTitle) fullTitle.textContent=selectedCat;
+  // Render subcategory cards with toggle & quantity
+  function renderSubcategories() {
+    const container = document.getElementById('subcatContainer');
+    if (!container) return;
+    const currentCat = categoryTree[selectedMainCat];
+    if (!currentCat) return;
+    container.innerHTML = '';
+    for (let sub of currentCat.subs) {
+      const existing = pantryItems.find(i => i.name === sub.name && i.category === selectedMainCat);
+      const have = existing ? existing.have : true;    // default true (have it)
+      const qty = existing ? existing.quantity : sub.defaultQty;
+      const unit = sub.unit;
 
-  const items=pantry.filter(i=>i.category===selectedCat);
-  const grid=document.getElementById('pill-grid');
-  if(grid){
-    if(!items.length) grid.innerHTML='<span style="color:#bbb;font-style:italic;font-size:13px">No items yet — add one below!</span>';
-    else grid.innerHTML=items.map(item=>`<div class="pill"><span>${EMOJI[item.name]||'🧺'}</span><span>${item.name}</span><span class="pill-check">✓</span></div>`).join('');
+      const card = document.createElement('div');
+      card.className = 'ingredient-card';
+      card.innerHTML = `
+        <div class="ingredient-name">
+          <span class="emoji-badge">${sub.emoji}</span>
+          <span>${sub.name}</span>
+        </div>
+        <div class="toggle-row">
+          <span style="font-size:13px; font-weight:500;">I have it</span>
+          <div class="toggle-switch ${have ? 'active' : ''}" data-name="${sub.name}"></div>
+        </div>
+        <div class="qty-row" style="margin-top: 8px;">
+          <input type="number" step="any" value="${qty}" class="qty-input" data-name="${sub.name}" placeholder="Quantity" style="width:100%;">
+          <div style="font-size:11px; color:#7f6b55; margin-top:4px;">${unit}</div>
+        </div>
+        <div class="missing-badge" id="missingBadge-${sub.name.replace(/\s/g,'')}" style="display: ${have ? 'none' : 'block'};">⚠️ Missing</div>
+      `;
+      // Attach events
+      const toggleDiv = card.querySelector('.toggle-switch');
+      const qtyInput = card.querySelector('.qty-input');
+      toggleDiv.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const newHave = !toggleDiv.classList.contains('active');
+        if (newHave) toggleDiv.classList.add('active');
+        else toggleDiv.classList.remove('active');
+        const missingBadge = card.querySelector(`.missing-badge`);
+        if (missingBadge) missingBadge.style.display = newHave ? 'none' : 'block';
+        const qtyVal = parseFloat(qtyInput.value) || sub.defaultQty;
+        await savePantryItem({
+          name: sub.name,
+          category: selectedMainCat,
+          subcategory: sub.name,
+          quantity: qtyVal,
+          unit: unit,
+          have: newHave
+        });
+      });
+      qtyInput.addEventListener('change', async () => {
+        const newQty = parseFloat(qtyInput.value) || sub.defaultQty;
+        const currentHave = toggleDiv.classList.contains('active');
+        await savePantryItem({
+          name: sub.name,
+          category: selectedMainCat,
+          subcategory: sub.name,
+          quantity: newQty,
+          unit: unit,
+          have: currentHave
+        });
+      });
+      container.appendChild(card);
+    }
   }
-  const fullGrid=document.getElementById('pantry-full-grid');
-  if(fullGrid){
-    const allItems=pantry.filter(i=>i.category===selectedCat);
-    if(!allItems.length) fullGrid.innerHTML='<span style="color:#bbb;font-style:italic;font-size:13px">No items in this category</span>';
-    else fullGrid.innerHTML=allItems.map(item=>`<div class="pill"><span>${EMOJI[item.name]||'🧺'}</span><span>${item.name}</span><span class="pill-check">✓</span></div>`).join('');
+
+  // Update missing ingredients list and share panel
+  function updateMissingList() {
+    const missing = pantryItems.filter(item => item.have === false);
+    const missingNames = missing.map(i => `${i.name} (${i.quantity} ${i.unit})`).join(', ');
+    const textDiv = document.getElementById('missingListText');
+    const countSpan = document.getElementById('missingCount');
+    if (!textDiv) return;
+    if (missing.length === 0) {
+      textDiv.innerText = '🎉 No missing ingredients! Everything is stocked.';
+      countSpan.innerText = '0';
+    } else {
+      textDiv.innerText = missingNames;
+      countSpan.innerText = missing.length;
+    }
   }
-}
 
-function renderAllTabs(){
-  drawWheel();
-  renderStrip();
-  renderPantry();
-  checkExpiry();
-}
-
-// ================================ TAB SWITCHING ==================================
-function switchTab(tabId){
-  document.querySelectorAll('.tab-panel').forEach(panel=>panel.classList.remove('active'));
-  document.getElementById(`tab-${tabId}`).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(item=>item.classList.remove('active'));
-  document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
-  if(tabId==='shopping') loadShoppingList();
-  if(tabId==='reminders'){ checkExpiry(); loadConsumptionNudge(); }
-}
-
-document.querySelectorAll('.nav-item').forEach(item=>{
-  item.addEventListener('click',()=>{
-    const tab=item.getAttribute('data-tab');
-    switchTab(tab);
+  // share & copy
+  function getMissingText() {
+    const missing = pantryItems.filter(item => item.have === false);
+    if (missing.length === 0) return "All ingredients are available! ✨";
+    return "🪄 Missing groceries:\n" + missing.map(i => `- ${i.name} (${i.quantity} ${i.unit})`).join("\n");
+  }
+  document.getElementById('copyMissingBtn')?.addEventListener('click', () => {
+    const txt = getMissingText();
+    navigator.clipboard.writeText(txt);
+    toast("📋 List copied!");
   });
-});
-
-// ================================ INIT ==========================================
-document.getElementById('item-name')?.addEventListener('keydown',e=>{if(e.key==='Enter') addItem();});
-document.getElementById('auth-password')?.addEventListener('keydown',e=>{if(e.key==='Enter') signInEmail();});
-
-(async()=>{
-  const {data:{session}}=await sb.auth.getSession();
-  if(session?.user) onSignedIn(session.user);
-  sb.auth.onAuthStateChange((_,session)=>{
-    if(session?.user&&!currentUser) onSignedIn(session.user);
-    else if(!session && currentUser) location.reload();
+  document.getElementById('shareMissingBtn')?.addEventListener('click', () => {
+    const txt = getMissingText();
+    if (navigator.share) {
+      navigator.share({ title: 'My Pantry Missing Items', text: txt }).catch(() => toast("Share cancelled"));
+    } else {
+      toast("Press copy instead (your browser lacks native share)");
+    }
   });
-})();
+
+  // Cauldron animation + recipe suggestions (bonus from previous logic)
+  async function triggerCauldron() {
+    toast("✨ Cauldron bubbling... Recipe suggestions coming soon!");
+    // For now just a cute effect, you can later connect Spoonacular using your key
+  }
+  document.getElementById('cauldronBtn')?.addEventListener('click', triggerCauldron);
+
+  // Tab navigation (ingredients / recipes / shopping list)
+  function switchTab(tab) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelector(`.nav-item[data-tab="${tab}"]`).classList.add('active');
+    const scrollArea = document.getElementById('scrollArea');
+    if (tab === 'ingredients') {
+      scrollArea.innerHTML = `
+        <div class="cauldron-header">${document.querySelector('.cauldron-header')?.outerHTML || ''}</div>
+        <div class="categories-row" id="categoryRow"></div>
+        <div id="subcatContainer"></div>
+        <div class="missing-section" id="missingPanel">
+          <div class="missing-title">📋 Missing ingredients <span style="font-size:12px; background:#FF6B35; color:white; padding:2px 8px; border-radius:20px;" id="missingCount">0</span></div>
+          <div class="missing-items" id="missingListText"></div>
+          <div class="share-buttons"><button id="copyMissingBtn" class="share-btn copy-btn">📋 Copy list</button><button id="shareMissingBtn" class="share-btn">📱 Share</button></div>
+        </div>
+        <div class="loader" id="loader"><div class="spinner"></div></div>
+      `;
+      // re-attach elements
+      window.renderCategories = renderCategories; window.renderSubcategories = renderSubcategories;
+      renderCategories();
+      renderSubcategories();
+      updateMissingList();
+      document.getElementById('copyMissingBtn')?.addEventListener('click', () => { navigator.clipboard.writeText(getMissingText()); toast("Copied"); });
+      document.getElementById('shareMissingBtn')?.addEventListener('click', () => { const txt = getMissingText(); if(navigator.share) navigator.share({text:txt}); else toast("Use copy"); });
+      document.getElementById('cauldronBtn')?.addEventListener('click', triggerCauldron);
+    } else if (tab === 'recipes') {
+      scrollArea.innerHTML = `<div style="padding: 40px 20px; text-align:center;">🍲 Recipe generator will use your pantry ingredients. Tap the cauldron to start! (Coming with Spoonacular integration)</div>`;
+    } else if (tab === 'shopping') {
+      scrollArea.innerHTML = `<div style="padding: 20px;"><h3>🛒 Shopping List</h3><div id="shoppingListDynamic">Loading...</div></div>`;
+      // Load shopping list from Supabase (shopping_list table)
+      const { data } = await sb.from('shopping_list').select('*').eq('user_id', currentUser.id);
+      const listHtml = data?.length ? data.map(i=>`<div style="background:white; border-radius: 60px; padding: 12px; margin:8px 0; display:flex; justify-content:space-between;">${i.name}<button onclick="removeFromShopping('${i.id}')">🗑️</button></div>`).join('') : "<div>Empty</div>";
+      document.getElementById('shoppingListDynamic').innerHTML = listHtml;
+      window.removeFromShopping = async (id) => { await sb.from('shopping_list').delete().eq('id',id); switchTab('shopping'); };
+    }
+  }
+  window.removeFromShopping = () => {};
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+  });
+
+  // User sign out & session
+  async function signOut() {
+    await sb.auth.signOut();
+    location.reload();
+  }
+  document.getElementById('userAvatar')?.addEventListener('click', () => { if(confirm("Sign out?")) signOut(); });
+
+  // Auth listener & init
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (session?.user) {
+      currentUser = session.user;
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'flex';
+      await refreshPantryAndUI();
+      renderCategories();
+      renderSubcategories();
+      updateMissingList();
+    } else {
+      document.getElementById('authScreen').style.display = 'flex';
+      document.getElementById('mainApp').style.display = 'none';
+    }
+  });
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session?.user) {
+      currentUser = session.user;
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'flex';
+      refreshPantryAndUI().then(() => { renderCategories(); renderSubcategories(); });
+    }
+  });
 </script>
 </body>
 </html>
