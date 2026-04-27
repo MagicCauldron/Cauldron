@@ -1,439 +1,381 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-<title>Pantry Cauldron — Preview</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fraunces:ital,wght@0,700;1,400&display=swap" rel="stylesheet" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<title>Pantry Cauldron</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fraunces:wght@700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#F7F3EE;--card:#fff;--orange:#FF6B35;--dark:#1A1A2E;
+  --muted:#9A9A9A;--border:#EFE9E0;--shadow:0 4px 24px rgba(0,0,0,.07);
+  --font:'Nunito',sans-serif;--serif:'Fraunces',serif;
+}
+html,body{
+  min-height:100%;background:#DDD5C8;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font);padding:24px 0;
+}
 
-  :root {
-    --cream:    #F7F3EE;
-    --card:     #FFFFFF;
-    --orange:   #FF6B35;
-    --dark:     #1A1A2E;
-    --muted:    #9A9A9A;
-    --border:   #EFE9E0;
-    --shadow:   0 4px 24px rgba(0,0,0,0.07);
-    --font:     'Nunito', sans-serif;
-    --serif:    'Fraunces', serif;
-  }
+/* ── Phone shell ── */
+.phone{
+  width:390px;min-height:844px;background:var(--cream);border-radius:48px;
+  box-shadow:0 0 0 10px #1a1a1a,0 0 0 12px #2a2a2a,0 40px 80px rgba(0,0,0,.45);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;
+}
+.phone::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:120px;height:30px;background:#1a1a1a;border-radius:0 0 20px 20px;z-index:99;
+}
+.status-bar{
+  height:44px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 28px 6px;font-size:12px;font-weight:700;color:var(--dark);flex-shrink:0;
+}
+.scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding-bottom:88px}
+.scroll-area::-webkit-scrollbar{display:none}
 
-  html, body {
-    height: 100%;
-    background: #E8E0D5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font);
-  }
+/* ── Toast ── */
+#toast{
+  position:absolute;bottom:90px;left:50%;transform:translateX(-50%);
+  background:var(--dark);color:white;font-size:13px;font-weight:700;
+  padding:10px 20px;border-radius:20px;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:opacity .3s;z-index:200;
+}
+#toast.show{opacity:1}
 
-  /* ── Phone shell ── */
-  .phone-shell {
-    width: 390px;
-    height: 844px;
-    background: var(--cream);
-    border-radius: 48px;
-    box-shadow:
-      0 0 0 10px #1a1a1a,
-      0 0 0 12px #2a2a2a,
-      0 40px 80px rgba(0,0,0,0.45);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-  }
+/* ── Auth screen ── */
+#auth-screen{
+  display:flex;flex-direction:column;align-items:center;
+  padding:50px 28px 32px;gap:12px;min-height:780px;
+}
+.auth-logo{font-size:72px;filter:drop-shadow(0 4px 12px rgba(255,107,53,.3))}
+.auth-title{font-family:var(--serif);font-size:30px;color:var(--dark);text-align:center;line-height:1.2}
+.auth-sub{font-size:14px;color:var(--muted);text-align:center;line-height:1.6;max-width:280px}
 
-  /* notch */
-  .phone-shell::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 50%; transform: translateX(-50%);
-    width: 120px; height: 30px;
-    background: #1a1a1a;
-    border-radius: 0 0 20px 20px;
-    z-index: 99;
-  }
+/* OAuth buttons */
+.oauth-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:12px;
+  border:none;border-radius:16px;padding:14px 20px;
+  font-size:15px;font-weight:700;font-family:var(--font);
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+}
+.oauth-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.oauth-btn:active{transform:scale(.98)}
+.oauth-btn.google{background:white;color:#3C4043;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.oauth-btn.facebook{background:#1877F2;color:white}
+.oauth-icon{width:22px;height:22px;flex-shrink:0}
 
-  /* status bar */
-  .status-bar {
-    height: 44px;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    padding: 0 28px 6px;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--dark);
-    flex-shrink: 0;
-  }
+.auth-divider{
+  width:100%;display:flex;align-items:center;gap:12px;
+  color:var(--muted);font-size:12px;margin:2px 0;
+}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 
-  /* ── Scroll area ── */
-  .scroll-area {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
-    padding-bottom: 80px;
-  }
-  .scroll-area::-webkit-scrollbar { display: none; }
+/* Email collapse */
+.email-toggle{
+  background:none;border:none;color:var(--orange);font-size:13px;
+  font-weight:700;font-family:var(--font);cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;
+}
+#email-form{display:none;width:100%;gap:10px;flex-direction:column}
+#email-form.open{display:flex}
+.auth-input{
+  width:100%;border:1.5px solid var(--border);border-radius:14px;
+  padding:13px 16px;font-size:15px;font-family:var(--font);color:var(--dark);
+  outline:none;transition:border-color .2s;background:white;
+}
+.auth-input:focus{border-color:var(--orange)}
+.auth-btn{
+  width:100%;border:none;border-radius:14px;padding:13px;
+  font-size:15px;font-weight:800;font-family:var(--font);
+  cursor:pointer;transition:filter .15s;
+}
+.auth-btn.primary{background:var(--orange);color:white}
+.auth-btn.secondary{background:transparent;color:var(--orange);border:2px solid var(--orange)}
+.auth-btn:hover{filter:brightness(1.07)}
 
-  /* ── Header ── */
-  .app-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 24px 4px;
-  }
-  .app-title {
-    font-family: var(--serif);
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--dark);
-    letter-spacing: -0.5px;
-  }
-  .bell-btn {
-    background: white;
-    border: none;
-    border-radius: 50%;
-    width: 38px; height: 38px;
-    font-size: 18px;
-    cursor: pointer;
-    box-shadow: var(--shadow);
-    display: flex; align-items: center; justify-content: center;
-    transition: transform 0.15s;
-  }
-  .bell-btn:hover { transform: scale(1.08); }
+.auth-note{font-size:11px;color:var(--muted);text-align:center;line-height:1.5;max-width:280px}
+#auth-error{color:#E05252;font-size:12px;font-weight:700;text-align:center;min-height:16px}
+#auth-msg  {color:var(--muted);font-size:12px;text-align:center;min-height:16px}
 
-  /* ── Wheel ── */
-  .wheel-wrapper {
-    display: flex;
-    justify-content: center;
-    padding: 16px 0 8px;
-    position: relative;
-  }
+/* ── App screen ── */
+#app-screen{display:none}
+.app-header{display:flex;justify-content:space-between;align-items:center;padding:12px 24px 4px}
+.app-title{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--dark)}
+.user-avatar{
+  width:36px;height:36px;border-radius:50%;object-fit:cover;
+  border:2px solid var(--orange);cursor:pointer;
+}
+.user-initials{
+  width:36px;height:36px;border-radius:50%;background:var(--orange);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;color:white;cursor:pointer;
+  border:2px solid white;box-shadow:var(--shadow);
+}
 
-  #wheel-svg { cursor: pointer; }
+/* ── User menu ── */
+#user-menu{
+  position:absolute;top:70px;right:16px;
+  background:white;border-radius:16px;padding:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:100;
+  display:none;min-width:200px;
+}
+#user-menu.open{display:block}
+.menu-name{font-size:13px;font-weight:800;color:var(--dark);margin-bottom:2px}
+.menu-email{font-size:11px;color:var(--muted);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.menu-btn{
+  width:100%;background:none;border:none;border-radius:10px;
+  padding:9px 12px;text-align:left;font-size:13px;font-weight:700;
+  font-family:var(--font);color:var(--dark);cursor:pointer;transition:background .15s;
+}
+.menu-btn:hover{background:#FFF0E8}
+.menu-btn.danger{color:#E05252}
 
-  .arc-path {
-    transition: opacity 0.2s, filter 0.2s;
-    cursor: pointer;
-  }
-  .arc-path:hover { opacity: 1 !important; filter: brightness(1.08); }
-  .arc-path.active { filter: drop-shadow(0 0 8px rgba(0,0,0,0.25)); }
+/* ── Wheel ── */
+.wheel-wrapper{display:flex;justify-content:center;padding:14px 0 6px;position:relative}
+.arc-path{transition:all .25s;cursor:pointer}
+.arc-path:hover{filter:brightness(1.1)}
+.cauldron-center{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:108px;height:108px;background:white;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 0 0 4px white,0 0 28px rgba(255,107,53,.35);
+  cursor:pointer;transition:transform .15s,box-shadow .3s;user-select:none;
+}
+.cauldron-center:hover{transform:translate(-50%,-50%) scale(1.06)}
+.cauldron-center.bubbling{animation:cauldronPulse .8s ease-in-out infinite alternate}
+@keyframes cauldronPulse{
+  from{box-shadow:0 0 0 4px white,0 0 20px rgba(255,107,53,.3)}
+  to  {box-shadow:0 0 0 4px white,0 0 44px rgba(255,107,53,.75)}
+}
+.cauldron-emoji{font-size:36px;line-height:1}
+.cauldron-label{font-size:10px;font-weight:900;color:var(--dark);text-align:center;line-height:1.3;margin-top:3px}
+.bubbles{display:none;gap:3px;margin-top:4px}
+.bubble{width:5px;height:5px;border-radius:50%;background:var(--orange);animation:bubbleUp .8s ease-in-out infinite}
+.bubble:nth-child(2){animation-delay:.2s}.bubble:nth-child(3){animation-delay:.4s}
+@keyframes bubbleUp{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(-6px);opacity:.5}}
 
-  /* Cauldron center */
-  .cauldron-center {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 108px; height: 108px;
-    background: white;
-    border-radius: 50%;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    box-shadow: 0 0 0 4px white, 0 0 28px rgba(255,107,53,0.35);
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.3s;
-    user-select: none;
-  }
-  .cauldron-center:hover { transform: translate(-50%, -50%) scale(1.05); }
-  .cauldron-center.bubbling {
-    animation: cauldronPulse 0.8s ease-in-out infinite alternate;
-  }
-  @keyframes cauldronPulse {
-    from { box-shadow: 0 0 0 4px white, 0 0 20px rgba(255,107,53,0.3); }
-    to   { box-shadow: 0 0 0 4px white, 0 0 40px rgba(255,107,53,0.7); }
-  }
-  .cauldron-emoji { font-size: 36px; line-height: 1; }
-  .cauldron-label {
-    font-size: 10px; font-weight: 900;
-    color: var(--dark); text-align: center;
-    line-height: 1.3; margin-top: 3px;
-  }
-  .cauldron-bubbles {
-    display: flex; gap: 3px; margin-top: 3px;
-  }
-  .bubble {
-    width: 5px; height: 5px; border-radius: 50%;
-    background: var(--orange);
-    animation: bubbleUp 0.8s ease-in-out infinite;
-  }
-  .bubble:nth-child(2) { animation-delay: 0.2s; }
-  .bubble:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bubbleUp {
-    0%, 100% { transform: translateY(0); opacity: 1; }
-    50%       { transform: translateY(-5px); opacity: 0.5; }
-  }
+/* Cat strip */
+.cat-strip{display:flex;overflow-x:auto;gap:8px;padding:4px 20px 10px;scrollbar-width:none}
+.cat-strip::-webkit-scrollbar{display:none}
+.cat-chip{
+  flex-shrink:0;padding:7px 16px;border-radius:20px;font-size:12px;
+  font-weight:700;color:white;cursor:pointer;opacity:.72;border:none;
+  transition:opacity .2s,transform .15s;
+}
+.cat-chip:hover{opacity:.9;transform:scale(1.03)}
+.cat-chip.active{opacity:1;transform:scale(1.05);box-shadow:0 3px 12px rgba(0,0,0,.18)}
 
-  /* ── Category strip (mobile scroll) ── */
-  .cat-strip {
-    display: flex;
-    overflow-x: auto;
-    gap: 8px;
-    padding: 4px 20px 10px;
-    scrollbar-width: none;
-  }
-  .cat-strip::-webkit-scrollbar { display: none; }
-  .cat-chip {
-    flex-shrink: 0;
-    padding: 7px 16px;
-    border-radius: 20px;
-    font-size: 12px; font-weight: 700;
-    color: white;
-    cursor: pointer;
-    opacity: 0.72;
-    transition: opacity 0.2s, transform 0.15s;
-    border: none;
-  }
-  .cat-chip:hover { opacity: 0.9; transform: scale(1.03); }
-  .cat-chip.active { opacity: 1; transform: scale(1.05); box-shadow: 0 3px 12px rgba(0,0,0,0.18); }
+/* Pantry card */
+.pantry-card{
+  margin:0 20px 14px;background:white;border-radius:20px;
+  padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.pantry-card-bar{position:absolute;top:0;left:0;right:0;height:4px;border-radius:20px 20px 0 0}
+.pantry-card-title{font-size:13px;font-weight:800;color:var(--dark);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+.pill-grid{display:flex;flex-wrap:wrap;gap:8px;min-height:32px}
+.pill{
+  display:flex;align-items:center;gap:5px;background:#FFF8F0;
+  border:1.5px solid #FFE5CC;border-radius:20px;padding:6px 10px;
+  font-size:12px;font-weight:600;color:var(--dark);
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+}
+.pill:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.08)}
+.pill-check{width:15px;height:15px;border-radius:50%;background:#52B356;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;font-weight:900}
+.pill-skeleton{height:34px;width:90px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:20px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-  /* ── Pantry card ── */
-  .pantry-card {
-    margin: 0 20px 14px;
-    background: white;
-    border-radius: 20px;
-    padding: 16px;
-    box-shadow: var(--shadow);
-    position: relative;
-    overflow: hidden;
-  }
-  .pantry-card-bar {
-    position: absolute; top: 0; left: 0; right: 0; height: 4px;
-    border-radius: 20px 20px 0 0;
-    transition: background 0.3s;
-  }
-  .pantry-card-title {
-    font-size: 13px; font-weight: 800;
-    color: var(--dark); margin-bottom: 12px;
-    text-transform: uppercase; letter-spacing: 0.5px;
-  }
-  .pill-grid {
-    display: flex; flex-wrap: wrap; gap: 8px;
-  }
-  .pill {
-    display: flex; align-items: center; gap: 5px;
-    background: #FFF8F0;
-    border: 1.5px solid #FFE5CC;
-    border-radius: 20px;
-    padding: 6px 10px;
-    font-size: 12px; font-weight: 600;
-    color: var(--dark);
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s;
-  }
-  .pill:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
-  .pill.empty { background: #F5F5F5; border-color: #E8E8E8; color: #BBB; }
-  .pill-check {
-    width: 15px; height: 15px; border-radius: 50%;
-    background: #52B356;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 9px; color: white; font-weight: 900;
-  }
+/* Expiry warnings */
+.expiry-section{margin:0 20px 14px}
+.expiry-title{font-size:14px;font-weight:800;color:var(--dark);margin-bottom:8px}
+.expiry-card{background:#FFF8F0;border:1.5px solid #FFE5CC;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.expiry-card.urgent{background:#FFF0F0;border-color:#FFCCCC}
+.expiry-text{flex:1;font-size:12px;font-weight:600;color:var(--dark);line-height:1.5}
+.expiry-emoji{font-size:20px}
 
-  /* ── Add item form ── */
-  .add-card {
-    margin: 0 20px 14px;
-    background: white;
-    border-radius: 20px;
-    padding: 16px;
-    box-shadow: var(--shadow);
-  }
-  .add-card-title {
-    font-size: 14px; font-weight: 800;
-    color: var(--dark); margin-bottom: 12px;
-  }
-  .add-input {
-    width: 100%;
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 10px 14px;
-    font-size: 14px;
-    font-family: var(--font);
-    color: var(--dark);
-    outline: none;
-    margin-bottom: 10px;
-    transition: border-color 0.2s;
-  }
-  .add-input:focus { border-color: var(--orange); }
-  .add-row { display: flex; gap: 10px; }
-  .add-qty { width: 80px; }
-  .add-btn {
-    flex: 1;
-    border: none; border-radius: 12px;
-    color: white; font-weight: 800; font-size: 14px;
-    font-family: var(--font);
-    cursor: pointer;
-    padding: 10px 0;
-    transition: filter 0.15s, transform 0.1s;
-  }
-  .add-btn:hover { filter: brightness(1.08); transform: scale(1.02); }
-  .add-btn:active { transform: scale(0.97); }
+/* Add card */
+.add-card{margin:0 20px 14px;background:white;border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.add-card-title{font-size:14px;font-weight:800;color:var(--dark);margin-bottom:12px}
+.add-input{
+  width:100%;border:1.5px solid var(--border);border-radius:12px;
+  padding:10px 14px;font-size:14px;font-family:var(--font);color:var(--dark);
+  outline:none;margin-bottom:10px;transition:border-color .2s;background:white;
+}
+.add-input:focus{border-color:var(--orange)}
+.add-row{display:flex;gap:10px}
+.add-qty{width:80px}
+.add-btn{flex:1;border:none;border-radius:12px;color:white;font-weight:800;font-size:14px;font-family:var(--font);cursor:pointer;padding:10px 0;transition:filter .15s,transform .1s}
+.add-btn:hover{filter:brightness(1.08)}
 
-  /* ── Recipes ── */
-  .recipes-section { margin: 0 20px 14px; }
-  .recipes-title {
-    font-size: 16px; font-weight: 900;
-    color: var(--dark); margin-bottom: 12px;
-    font-family: var(--serif);
-  }
-  .recipe-card {
-    display: flex;
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    margin-bottom: 12px;
-    box-shadow: var(--shadow);
-    cursor: pointer;
-    transition: transform 0.15s;
-  }
-  .recipe-card:hover { transform: translateY(-2px); }
-  .recipe-img {
-    width: 88px; height: 88px;
-    object-fit: cover; flex-shrink: 0;
-  }
-  .recipe-info { flex: 1; padding: 12px; }
-  .recipe-title { font-size: 13px; font-weight: 800; color: var(--dark); margin-bottom: 3px; }
-  .recipe-used  { font-size: 11px; color: #777; margin-bottom: 2px; }
-  .recipe-miss  { font-size: 11px; color: var(--orange); margin-bottom: 6px; }
-  .recipe-cta   { font-size: 11px; font-weight: 800; color: var(--orange); }
+/* Loading */
+.loading-box{text-align:center;padding:24px 20px}
+.loading-box p{margin-top:10px;font-weight:700;color:var(--orange);font-size:14px}
+.spinner{width:34px;height:34px;border:3px solid #FFE5CC;border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  /* loading */
-  .loading-box { text-align: center; padding: 28px 20px; }
-  .loading-box p { margin-top: 10px; font-weight: 700; color: var(--orange); font-size: 14px; }
-  .spinner {
-    width: 36px; height: 36px;
-    border: 3px solid #FFE5CC;
-    border-top-color: var(--orange);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* Recipes */
+.recipes-section{margin:0 20px 14px}
+.recipes-title{font-size:16px;font-weight:900;color:var(--dark);margin-bottom:12px;font-family:var(--serif)}
+.recipe-card{display:flex;background:white;border-radius:16px;overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s}
+.recipe-card:hover{transform:translateY(-2px)}
+.recipe-img{width:88px;height:88px;object-fit:cover;flex-shrink:0}
+.recipe-info{flex:1;padding:12px}
+.recipe-name{font-size:13px;font-weight:800;color:var(--dark);margin-bottom:3px}
+.recipe-used{font-size:11px;color:#777;margin-bottom:2px}
+.recipe-miss{font-size:11px;color:var(--orange);margin-bottom:6px}
+.recipe-cta{font-size:11px;font-weight:800;color:var(--orange)}
 
-  /* ── Bottom nav ── */
-  .bottom-nav {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    height: 72px;
-    background: white;
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    padding-bottom: 8px;
-    box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
-  }
-  .nav-item {
-    display: flex; flex-direction: column;
-    align-items: center; gap: 2px;
-    cursor: pointer;
-    padding: 6px 10px;
-    border-radius: 12px;
-    transition: background 0.15s;
-  }
-  .nav-item:hover { background: #FFF0E8; }
-  .nav-item.active .nav-label { color: var(--orange); font-weight: 800; }
-  .nav-emoji { font-size: 20px; }
-  .nav-label { font-size: 10px; color: var(--muted); font-weight: 600; }
+/* Bottom nav */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:white;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding-bottom:8px;box-shadow:0 -4px 16px rgba(0,0,0,.05)}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 10px;border-radius:12px;transition:background .15s}
+.nav-item:hover{background:#FFF0E8}
+.nav-item.active .nav-label{color:var(--orange);font-weight:800}
+.nav-emoji{font-size:20px}
+.nav-label{font-size:10px;color:var(--muted);font-weight:600}
 
-  /* entry animations */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .anim-1 { animation: fadeUp 0.4s ease both; }
-  .anim-2 { animation: fadeUp 0.4s 0.1s ease both; }
-  .anim-3 { animation: fadeUp 0.4s 0.2s ease both; }
-  .anim-4 { animation: fadeUp 0.4s 0.3s ease both; }
-  .anim-5 { animation: fadeUp 0.4s 0.4s ease both; }
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.anim-1{animation:fadeUp .35s ease both}
+.anim-2{animation:fadeUp .35s .08s ease both}
+.anim-3{animation:fadeUp .35s .16s ease both}
+.anim-4{animation:fadeUp .35s .24s ease both}
+.anim-5{animation:fadeUp .35s .32s ease both}
 </style>
 </head>
 <body>
-
-<div class="phone-shell">
+<div class="phone">
   <div class="status-bar">
-    <span>10:09</span>
+    <span id="clock">10:09</span>
     <span>▐▐▐ 100% 🔋</span>
   </div>
 
-  <div class="scroll-area">
+  <!-- ── AUTH SCREEN ── -->
+  <div id="auth-screen">
+    <div class="auth-logo">🪄</div>
+    <div class="auth-title">Pantry Cauldron</div>
+    <div class="auth-sub">Your magical kitchen companion. Sign in to save your pantry.</div>
 
-    <!-- Header -->
-    <div class="app-header anim-1">
-      <span class="app-title">Pantry Cauldron</span>
-      <button class="bell-btn">🔔</button>
+    <!-- Google -->
+    <button class="oauth-btn google" onclick="signInWith('google')">
+      <svg class="oauth-icon" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Continue with Google
+    </button>
+
+    <!-- Facebook -->
+    <button class="oauth-btn facebook" onclick="signInWith('facebook')">
+      <svg class="oauth-icon" viewBox="0 0 24 24" fill="white">
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+      </svg>
+      Continue with Facebook
+    </button>
+
+    <div class="auth-divider">or</div>
+
+    <button class="email-toggle" onclick="toggleEmailForm()">Sign in with email instead</button>
+
+    <div id="email-form">
+      <input class="auth-input" id="auth-email"    type="email"    placeholder="Email address"/>
+      <input class="auth-input" id="auth-password" type="password" placeholder="Password (min 6 chars)"/>
+      <button class="auth-btn primary"   onclick="signInEmail()">Sign In</button>
+      <button class="auth-btn secondary" onclick="signUpEmail()">Create Account</button>
     </div>
 
-    <!-- Wheel -->
-    <div class="wheel-wrapper anim-2">
-      <svg id="wheel-svg" width="320" height="320" viewBox="0 0 320 320"></svg>
-      <div class="cauldron-center" id="cauldron" onclick="triggerCauldron()">
-        <span class="cauldron-emoji">🪄</span>
-        <span class="cauldron-label" id="cauldron-label">Suggest<br>Recipes</span>
-        <div class="cauldron-bubbles" id="bubbles" style="display:none">
-          <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+    <div class="auth-note">By continuing you agree to our Terms of Service. Your pantry data is private and only visible to you.</div>
+    <div id="auth-msg"></div>
+    <div id="auth-error"></div>
+  </div>
+
+  <!-- ── APP SCREEN ── -->
+  <div id="app-screen">
+
+    <!-- User dropdown menu -->
+    <div id="user-menu">
+      <div class="menu-name" id="menu-name">Loading...</div>
+      <div class="menu-email" id="menu-email"></div>
+      <button class="menu-btn" onclick="closeMenu()">✏️ &nbsp;Edit Profile</button>
+      <button class="menu-btn" onclick="closeMenu()">⚙️ &nbsp;Allergies & Diet</button>
+      <button class="menu-btn danger" onclick="signOut()">🚪 &nbsp;Sign Out</button>
+    </div>
+
+    <div class="scroll-area">
+
+      <div class="app-header anim-1">
+        <span class="app-title">Pantry Cauldron</span>
+        <div id="user-avatar-wrap" onclick="toggleMenu()" style="cursor:pointer"></div>
+      </div>
+
+      <div class="wheel-wrapper anim-2">
+        <svg id="wheel-svg" width="320" height="320" viewBox="0 0 320 320"></svg>
+        <div class="cauldron-center" id="cauldron" onclick="triggerCauldron()">
+          <span class="cauldron-emoji">🪄</span>
+          <span class="cauldron-label" id="cauldron-label">Suggest<br>Recipes</span>
+          <div class="bubbles" id="bubbles">
+            <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Category strip -->
-    <div class="cat-strip anim-3" id="cat-strip"></div>
+      <div class="cat-strip anim-3" id="cat-strip"></div>
 
-    <!-- Pantry card -->
-    <div class="pantry-card anim-4">
-      <div class="pantry-card-bar" id="cat-bar"></div>
-      <div class="pantry-card-title" id="cat-title"></div>
-      <div class="pill-grid" id="pill-grid"></div>
-    </div>
-
-    <!-- Add item -->
-    <div class="add-card anim-5">
-      <div class="add-card-title">➕ Add to Pantry</div>
-      <input class="add-input" id="item-name" placeholder="Item name (e.g. Strawberries)" />
-      <div class="add-row">
-        <input class="add-input add-qty" id="item-qty" placeholder="Qty" type="number" value="1" />
-        <button class="add-btn" id="add-btn" onclick="addItem()">Add</button>
+      <div class="pantry-card anim-4">
+        <div class="pantry-card-bar"   id="cat-bar"></div>
+        <div class="pantry-card-title" id="cat-title"></div>
+        <div class="pill-grid"         id="pill-grid">
+          <div class="pill-skeleton"></div><div class="pill-skeleton"></div><div class="pill-skeleton"></div>
+        </div>
       </div>
-    </div>
 
-    <!-- Loading -->
-    <div class="loading-box" id="loading-box" style="display:none">
-      <div class="spinner"></div>
-      <p>The cauldron is bubbling... ✨</p>
-    </div>
+      <div class="expiry-section" id="expiry-section" style="display:none">
+        <div class="expiry-title">⚠️ Heads up!</div>
+        <div id="expiry-list"></div>
+      </div>
 
-    <!-- Recipes -->
-    <div class="recipes-section" id="recipes-section" style="display:none">
-      <div class="recipes-title">✨ Cauldron Suggestions</div>
-      <div id="recipes-list"></div>
-    </div>
+      <div class="add-card anim-5">
+        <div class="add-card-title">➕ Add to Pantry</div>
+        <input class="add-input" id="item-name" placeholder="Item name (e.g. Strawberries)"/>
+        <div class="add-row">
+          <input class="add-input add-qty" id="item-qty" placeholder="Qty" type="number" value="1"/>
+          <button class="add-btn" id="add-btn" onclick="addItem()">Add</button>
+        </div>
+      </div>
 
-  </div><!-- /scroll -->
+      <div class="loading-box" id="loading-box" style="display:none">
+        <div class="spinner"></div>
+        <p>The cauldron is bubbling... ✨</p>
+      </div>
 
-  <!-- Bottom nav -->
-  <div class="bottom-nav">
-    <div class="nav-item active" onclick="setTab(this)">
-      <span class="nav-emoji">🏠</span><span class="nav-label">Home</span>
+      <div class="recipes-section" id="recipes-section" style="display:none">
+        <div class="recipes-title">✨ Cauldron Suggestions</div>
+        <div id="recipes-list"></div>
+      </div>
+
+    </div><!-- /scroll-area -->
+
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="setTab(this)"><span class="nav-emoji">🏠</span><span class="nav-label">Home</span></div>
+      <div class="nav-item"        onclick="setTab(this)"><span class="nav-emoji">🥘</span><span class="nav-label">Pantry</span></div>
+      <div class="nav-item"        onclick="setTab(this)"><span class="nav-emoji">📖</span><span class="nav-label">Recipes</span></div>
+      <div class="nav-item"        onclick="setTab(this)"><span class="nav-emoji">⏰</span><span class="nav-label">Reminders</span></div>
+      <div class="nav-item"        onclick="setTab(this)"><span class="nav-emoji">🛒</span><span class="nav-label">List</span></div>
     </div>
-    <div class="nav-item" onclick="setTab(this)">
-      <span class="nav-emoji">🥘</span><span class="nav-label">Pantry</span>
-    </div>
-    <div class="nav-item" onclick="setTab(this)">
-      <span class="nav-emoji">📖</span><span class="nav-label">Recipes</span>
-    </div>
-    <div class="nav-item" onclick="setTab(this)">
-      <span class="nav-emoji">⏰</span><span class="nav-label">Reminders</span>
-    </div>
-    <div class="nav-item" onclick="setTab(this)">
-      <span class="nav-emoji">🛒</span><span class="nav-label">List</span>
-    </div>
-  </div>
-</div><!-- /phone-shell -->
+  </div><!-- /app-screen -->
+
+  <div id="toast"></div>
+</div><!-- /phone -->
 
 <script>
-// ── Data ──────────────────────────────────────────────────────────────────────
+// ── Supabase ──────────────────────────────────────────────────────────────────
+const SUPA_URL = 'https://ultcwpsxdqoztyhjjujq.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsdGN3cHN4ZHFvenR5aGpqdWpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDM5MzcsImV4cCI6MjA5Mjc3OTkzN30.JpHD4A6ubMBkF7aDat83taXM3qB2L5XIE1Q0tqbz3-o';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { label:'Fruits',       emoji:'🍎', color:'#F5C842', startDeg:-90, endDeg:-30 },
   { label:'Dairy & Fish', emoji:'🐟', color:'#4BAEE8', startDeg:-30, endDeg: 30 },
@@ -443,219 +385,317 @@ const CATEGORIES = [
   { label:'Vegetables',   emoji:'🥦', color:'#52B356', startDeg:210, endDeg:270 },
   { label:'Meat',         emoji:'🥩', color:'#E05252', startDeg:270, endDeg:330 },
 ];
-
-const ITEM_EMOJIS = {
+const EMOJI = {
   'Red Apples':'🍎','Green Apples':'🍏','Lemons':'🍋','Bananas':'🍌',
   'Oranges':'🍊','Grapes':'🍇','Cherry Tomatoes':'🍅','Pears':'🍐',
   'Chicken':'🍗','Salmon':'🐟','Cheddar':'🧀','Milk':'🥛',
-  'Broccoli':'🥦','Spinach':'🌿','Carrots':'🥕',
+  'Broccoli':'🥦','Spinach':'🌿','Carrots':'🥕','Eggs':'🥚',
 };
-
-let pantry = [
-  { name:'Red Apples',      category:'Fruits',     qty:4,  unit:'pieces', inStock:true },
-  { name:'Green Apples',    category:'Fruits',     qty:3,  unit:'pieces', inStock:true },
-  { name:'Lemons',          category:'Fruits',     qty:2,  unit:'pieces', inStock:true },
-  { name:'Bananas',         category:'Fruits',     qty:5,  unit:'pieces', inStock:true },
-  { name:'Oranges',         category:'Fruits',     qty:6,  unit:'pieces', inStock:true },
-  { name:'Grapes',          category:'Fruits',     qty:1,  unit:'bunch',  inStock:false },
-  { name:'Cherry Tomatoes', category:'Vegetables', qty:20, unit:'pieces', inStock:false },
-  { name:'Pears',           category:'Fruits',     qty:3,  unit:'pieces', inStock:false },
+const SEEDS = [
+  {name:'Red Apples',category:'Fruits',quantity:4,unit:'pieces',shelf_life_days:7},
+  {name:'Green Apples',category:'Fruits',quantity:3,unit:'pieces',shelf_life_days:7},
+  {name:'Lemons',category:'Fruits',quantity:2,unit:'pieces',shelf_life_days:14},
+  {name:'Bananas',category:'Fruits',quantity:5,unit:'pieces',shelf_life_days:5},
+  {name:'Oranges',category:'Fruits',quantity:6,unit:'pieces',shelf_life_days:14},
+  {name:'Grapes',category:'Fruits',quantity:1,unit:'bunch',shelf_life_days:5},
+  {name:'Cherry Tomatoes',category:'Vegetables',quantity:20,unit:'pieces',shelf_life_days:5},
+  {name:'Pears',category:'Fruits',quantity:3,unit:'pieces',shelf_life_days:7},
 ];
 
-let selectedCat = 'Fruits';
-let recipes = [];
+let currentUser = null, pantry = [], selectedCat = 'Fruits';
 
-// ── SVG arc helpers ───────────────────────────────────────────────────────────
-const CX = 160, CY = 160, OR = 154, IR = 60, GAP = 3;
-const NS = 'http://www.w3.org/2000/svg';
+// ── Clock ─────────────────────────────────────────────────────────────────────
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=
+    String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+}
+setInterval(tick,10000); tick();
 
-function polar(cx, cy, r, deg) {
-  const rad = (deg - 90) * Math.PI / 180;
-  return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
-}
-function arcPath(s, e) {
-  const [x1,y1] = polar(CX,CY,OR, s+GAP);
-  const [x2,y2] = polar(CX,CY,OR, e-GAP);
-  const [x3,y3] = polar(CX,CY,IR, e-GAP);
-  const [x4,y4] = polar(CX,CY,IR, s+GAP);
-  const lg = (e-s) > 180 ? 1 : 0;
-  return `M${x1} ${y1} A${OR} ${OR} 0 ${lg} 1 ${x2} ${y2} L${x3} ${y3} A${IR} ${IR} 0 ${lg} 0 ${x4} ${y4}Z`;
-}
-function midPos(s, e) {
-  const mid = (s+e)/2, r = (OR+IR)/2;
-  return polar(CX, CY, r, mid);
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
 }
 
-// ── Draw wheel ────────────────────────────────────────────────────────────────
-function drawWheel() {
-  const svg = document.getElementById('wheel-svg');
-  svg.innerHTML = '';
-  CATEGORIES.forEach(cat => {
-    const isActive = cat.label === selectedCat;
-    const g = document.createElementNS(NS,'g');
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function setErr(m){document.getElementById('auth-error').textContent=m}
+function setMsg(m){document.getElementById('auth-msg').textContent=m}
 
-    const path = document.createElementNS(NS,'path');
-    path.setAttribute('d', arcPath(cat.startDeg, cat.endDeg));
-    path.setAttribute('fill', cat.color);
-    path.setAttribute('opacity', isActive ? '1' : '0.78');
-    path.setAttribute('stroke', 'white');
-    path.setAttribute('stroke-width', isActive ? '3' : '1.5');
-    path.setAttribute('class', 'arc-path' + (isActive ? ' active' : ''));
-    path.style.transition = 'all 0.25s';
+function toggleEmailForm(){
+  const f=document.getElementById('email-form');
+  f.classList.toggle('open');
+}
 
-    const [lx, ly] = midPos(cat.startDeg, cat.endDeg);
-
-    const te = document.createElementNS(NS,'text');
-    te.setAttribute('x', lx); te.setAttribute('y', ly - 11);
-    te.setAttribute('text-anchor','middle');
-    te.setAttribute('dominant-baseline','middle');
-    te.setAttribute('font-size', isActive ? '22' : '18');
-    te.textContent = cat.emoji;
-
-    const tl = document.createElementNS(NS,'text');
-    tl.setAttribute('x', lx); tl.setAttribute('y', ly + 12);
-    tl.setAttribute('text-anchor','middle');
-    tl.setAttribute('font-size', isActive ? '9.5' : '8.5');
-    tl.setAttribute('font-weight', isActive ? 'bold' : 'normal');
-    tl.setAttribute('font-family','Nunito, sans-serif');
-    tl.setAttribute('fill','white');
-    tl.textContent = cat.label;
-
-    g.appendChild(path); g.appendChild(te); g.appendChild(tl);
-    g.style.cursor = 'pointer';
-    g.addEventListener('click', () => { selectedCat = cat.label; renderAll(); });
-    svg.appendChild(g);
+async function signInWith(provider){
+  setErr(''); setMsg('Redirecting...');
+  const redirectTo = window.location.href;
+  const { error } = await sb.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo }
   });
-
-  // inner white circle
-  const circle = document.createElementNS(NS,'circle');
-  circle.setAttribute('cx',CX); circle.setAttribute('cy',CY);
-  circle.setAttribute('r', IR+2); circle.setAttribute('fill','white');
-  svg.appendChild(circle);
+  if(error){ setMsg(''); setErr(error.message); }
 }
 
-// ── Category strip ────────────────────────────────────────────────────────────
-function renderStrip() {
-  const strip = document.getElementById('cat-strip');
-  strip.innerHTML = '';
-  CATEGORIES.forEach(cat => {
-    const btn = document.createElement('button');
-    btn.className = 'cat-chip' + (cat.label === selectedCat ? ' active' : '');
-    btn.style.background = cat.color;
-    btn.textContent = cat.emoji + ' ' + cat.label;
-    btn.onclick = () => { selectedCat = cat.label; renderAll(); };
-    strip.appendChild(btn);
-  });
+async function signInEmail(){
+  setErr(''); setMsg('Signing in...');
+  const email=document.getElementById('auth-email').value.trim();
+  const pw=document.getElementById('auth-password').value;
+  if(!email||!pw){ setMsg(''); setErr('Enter your email and password.'); return; }
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pw});
+  if(error){ setMsg(''); setErr(error.message); return; }
+  onSignedIn(data.user);
 }
 
-// ── Pantry pills ──────────────────────────────────────────────────────────────
-function renderPantry() {
-  const cat  = CATEGORIES.find(c => c.label === selectedCat);
-  const bar  = document.getElementById('cat-bar');
-  const title= document.getElementById('cat-title');
-  const grid = document.getElementById('pill-grid');
-  const addBtn = document.getElementById('add-btn');
+async function signUpEmail(){
+  setErr(''); setMsg('Creating account...');
+  const email=document.getElementById('auth-email').value.trim();
+  const pw=document.getElementById('auth-password').value;
+  if(!email||!pw){ setMsg(''); setErr('Enter an email and password.'); return; }
+  if(pw.length<6){ setMsg(''); setErr('Password must be at least 6 characters.'); return; }
+  const {error}=await sb.auth.signUp({email,password:pw});
+  if(error){ setMsg(''); setErr(error.message); return; }
+  setMsg('✅ Check your email to confirm your account!');
+}
 
-  bar.style.background = cat.color;
-  addBtn.style.background = cat.color;
-  title.textContent = selectedCat;
+async function signOut(){
+  closeMenu();
+  await sb.auth.signOut();
+  currentUser=null; pantry=[];
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  setErr(''); setMsg('');
+  toast('Signed out 👋');
+}
 
-  const items = pantry.filter(i => i.category === selectedCat);
-  grid.innerHTML = '';
+function onSignedIn(user){
+  currentUser=user;
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
 
-  if (!items.length) {
-    grid.innerHTML = '<span style="color:#bbb;font-style:italic;font-size:13px">No items yet — add one below!</span>';
-    return;
+  // Build avatar
+  const wrap=document.getElementById('user-avatar-wrap');
+  const meta=user.user_metadata||{};
+  const name=meta.full_name||meta.name||user.email?.split('@')[0]||'You';
+  const avatar=meta.avatar_url||meta.picture||null;
+
+  document.getElementById('menu-name').textContent=name;
+  document.getElementById('menu-email').textContent=user.email||'OAuth user';
+
+  if(avatar){
+    wrap.innerHTML=`<img class="user-avatar" src="${avatar}" alt="${name}" onclick="toggleMenu()"/>`;
+  } else {
+    const initials=name.slice(0,2).toUpperCase();
+    wrap.innerHTML=`<div class="user-initials">${initials}</div>`;
   }
-  items.forEach(item => {
-    const pill = document.createElement('div');
-    pill.className = 'pill' + (item.inStock ? '' : ' empty');
-    pill.innerHTML = `
-      <span>${ITEM_EMOJIS[item.name] || '🧺'}</span>
-      <span>${item.name}</span>
-      ${item.inStock ? '<span class="pill-check">✓</span>' : ''}
-    `;
-    grid.appendChild(pill);
+
+  loadPantry();
+}
+
+// ── User menu ─────────────────────────────────────────────────────────────────
+function toggleMenu(){
+  document.getElementById('user-menu').classList.toggle('open');
+}
+function closeMenu(){
+  document.getElementById('user-menu').classList.remove('open');
+}
+document.addEventListener('click', e=>{
+  const menu=document.getElementById('user-menu');
+  const wrap=document.getElementById('user-avatar-wrap');
+  if(!menu.contains(e.target) && !wrap.contains(e.target)) closeMenu();
+});
+
+// ── Pantry ────────────────────────────────────────────────────────────────────
+async function loadPantry(){
+  showSkeletons();
+  const {data,error}=await sb
+    .from('pantry_items').select('*')
+    .eq('user_id',currentUser.id)
+    .order('created_at',{ascending:false});
+
+  if(error){
+    toast('⚠️ DB error — showing demo data'); pantry=SEEDS.slice();
+  } else if(!data||data.length===0){
+    const seeds=SEEDS.map(i=>({...i,user_id:currentUser.id,added_date:new Date().toISOString()}));
+    const {data:ins}=await sb.from('pantry_items').insert(seeds).select();
+    pantry=ins||seeds;
+    toast('✨ Welcome! Sample pantry loaded.');
+  } else {
+    pantry=data;
+  }
+
+  pantry.forEach(item=>{
+    if(item.added_date&&item.shelf_life_days){
+      const exp=new Date(item.added_date).getTime()+item.shelf_life_days*86400000;
+      item._daysLeft=Math.ceil((exp-Date.now())/86400000);
+    }
   });
+
+  renderAll(); checkExpiry();
+}
+
+async function addItem(){
+  const name=document.getElementById('item-name').value.trim();
+  const qty=parseInt(document.getElementById('item-qty').value)||1;
+  if(!name){document.getElementById('item-name').focus();return;}
+  const row={user_id:currentUser.id,name,category:selectedCat,
+    quantity:qty,unit:'piece',shelf_life_days:7,
+    added_date:new Date().toISOString()};
+  const {data,error}=await sb.from('pantry_items').insert([row]).select();
+  if(error){toast('❌ '+error.message);return;}
+  const saved=data?.[0]||row; saved._daysLeft=7;
+  pantry.unshift(saved);
+  document.getElementById('item-name').value='';
+  document.getElementById('item-qty').value='1';
+  toast('✅ '+name+' added!'); renderPantry();
+}
+
+// ── Expiry ────────────────────────────────────────────────────────────────────
+function checkExpiry(){
+  const warn=pantry.filter(i=>i._daysLeft!==undefined&&i._daysLeft<=2);
+  const sec=document.getElementById('expiry-section');
+  const list=document.getElementById('expiry-list');
+  if(!warn.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  list.innerHTML=warn.map(item=>{
+    const u=item._daysLeft<=0;
+    const msg=u
+      ?`Hey! Your <strong>${item.name}</strong> has expired 😬 Use it up or toss it!`
+      :`Your <strong>${item.name}</strong> expires in <strong>${item._daysLeft} day${item._daysLeft===1?'':'s'}</strong>. Quick recipe? 🍳`;
+    return`<div class="expiry-card ${u?'urgent':''}"><span class="expiry-emoji">${u?'🚨':'⏳'}</span><span class="expiry-text">${msg}</span></div>`;
+  }).join('');
 }
 
 // ── Cauldron ──────────────────────────────────────────────────────────────────
-function triggerCauldron() {
-  const cauldron = document.getElementById('cauldron');
-  const label    = document.getElementById('cauldron-label');
-  const bubbles  = document.getElementById('bubbles');
-  const loadBox  = document.getElementById('loading-box');
-  const recSec   = document.getElementById('recipes-section');
-
-  cauldron.classList.add('bubbling');
-  label.textContent = 'Bubbling...';
-  bubbles.style.display = 'flex';
-  loadBox.style.display = 'block';
-  recSec.style.display  = 'none';
-
-  setTimeout(() => {
-    cauldron.classList.remove('bubbling');
-    label.innerHTML = 'Suggest<br>Recipes';
-    bubbles.style.display = 'none';
-    loadBox.style.display = 'none';
-
-    recipes = [
-      { title:'Fresh Fruit Salad',    img:'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=200&q=80', used:['Red Apples','Bananas','Lemons'],  miss:['Honey','Mint'] },
-      { title:'Green Apple Smoothie', img:'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=200&q=80', used:['Green Apples','Bananas'],         miss:['Yogurt','Spinach'] },
-      { title:'Citrus Chia Pudding',  img:'https://images.unsplash.com/photo-1541533848490-bc8115cd6522?w=200&q=80', used:['Oranges','Lemons'],               miss:['Chia Seeds','Oat Milk'] },
-    ];
-    renderRecipes();
-  }, 2600);
+function triggerCauldron(){
+  const el=document.getElementById('cauldron');
+  const lbl=document.getElementById('cauldron-label');
+  const bub=document.getElementById('bubbles');
+  el.classList.add('bubbling'); lbl.textContent='Bubbling...'; bub.style.display='flex';
+  document.getElementById('loading-box').style.display='block';
+  document.getElementById('recipes-section').style.display='none';
+  setTimeout(()=>{
+    el.classList.remove('bubbling'); lbl.innerHTML='Suggest<br>Recipes'; bub.style.display='none';
+    document.getElementById('loading-box').style.display='none';
+    const used=pantry.slice(0,5).map(i=>i.name);
+    renderRecipes([
+      {title:'Fresh Fruit Salad',    img:'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=200&q=80',used:used.slice(0,3),miss:['Honey','Mint']},
+      {title:'Green Apple Smoothie', img:'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=200&q=80',used:used.slice(1,3),miss:['Yogurt','Spinach']},
+      {title:'Citrus Chia Pudding',  img:'https://images.unsplash.com/photo-1541533848490-bc8115cd6522?w=200&q=80',used:used.slice(3,5),miss:['Chia Seeds','Oat Milk']},
+    ]);
+  },2600);
 }
 
-function renderRecipes() {
-  const sec  = document.getElementById('recipes-section');
-  const list = document.getElementById('recipes-list');
-  sec.style.display = 'block';
-  list.innerHTML = '';
-  recipes.forEach(r => {
-    list.innerHTML += `
-      <div class="recipe-card">
-        <img class="recipe-img" src="${r.img}" alt="${r.title}" loading="lazy" />
-        <div class="recipe-info">
-          <div class="recipe-title">${r.title}</div>
-          <div class="recipe-used">Using: ${r.used.join(', ')}</div>
-          <div class="recipe-miss">Need: ${r.miss.join(', ')}</div>
-          <div class="recipe-cta">🔥 Cook This →</div>
-        </div>
-      </div>`;
+function renderRecipes(list){
+  const sec=document.getElementById('recipes-section');
+  sec.style.display='block';
+  document.getElementById('recipes-list').innerHTML=list.map(r=>`
+    <div class="recipe-card">
+      <img class="recipe-img" src="${r.img}" alt="${r.title}" loading="lazy"/>
+      <div class="recipe-info">
+        <div class="recipe-name">${r.title}</div>
+        <div class="recipe-used">Using: ${r.used.join(', ')}</div>
+        <div class="recipe-miss">Need: ${r.miss.join(', ')}</div>
+        <div class="recipe-cta">🔥 Cook This →</div>
+      </div>
+    </div>`).join('');
+  sec.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── SVG Wheel ─────────────────────────────────────────────────────────────────
+const NS='http://www.w3.org/2000/svg',CX=160,CY=160,OR=154,IR=60,GAP=3;
+function polar(r,d){const a=(d-90)*Math.PI/180;return[CX+r*Math.cos(a),CY+r*Math.sin(a)]}
+function arc(s,e){
+  const[x1,y1]=polar(OR,s+GAP),[x2,y2]=polar(OR,e-GAP);
+  const[x3,y3]=polar(IR,e-GAP),[x4,y4]=polar(IR,s+GAP);
+  const lg=(e-s)>180?1:0;
+  return`M${x1} ${y1} A${OR} ${OR} 0 ${lg} 1 ${x2} ${y2} L${x3} ${y3} A${IR} ${IR} 0 ${lg} 0 ${x4} ${y4}Z`;
+}
+function mid(s,e){return polar((OR+IR)/2,(s+e)/2)}
+
+function drawWheel(){
+  const svg=document.getElementById('wheel-svg'); svg.innerHTML='';
+  CATEGORIES.forEach(cat=>{
+    const on=cat.label===selectedCat,g=document.createElementNS(NS,'g');
+    const p=document.createElementNS(NS,'path');
+    p.setAttribute('d',arc(cat.startDeg,cat.endDeg));
+    p.setAttribute('fill',cat.color); p.setAttribute('opacity',on?'1':'0.78');
+    p.setAttribute('stroke','white'); p.setAttribute('stroke-width',on?'3':'1.5');
+    p.setAttribute('class','arc-path'+(on?' active':''));
+    const[lx,ly]=mid(cat.startDeg,cat.endDeg);
+    const te=document.createElementNS(NS,'text');
+    te.setAttribute('x',lx);te.setAttribute('y',ly-11);
+    te.setAttribute('text-anchor','middle');te.setAttribute('dominant-baseline','middle');
+    te.setAttribute('font-size',on?'22':'18');te.textContent=cat.emoji;
+    const tl=document.createElementNS(NS,'text');
+    tl.setAttribute('x',lx);tl.setAttribute('y',ly+12);
+    tl.setAttribute('text-anchor','middle');tl.setAttribute('font-size',on?'9.5':'8.5');
+    tl.setAttribute('font-weight',on?'bold':'normal');
+    tl.setAttribute('font-family','Nunito,sans-serif');tl.setAttribute('fill','white');
+    tl.textContent=cat.label;
+    g.appendChild(p);g.appendChild(te);g.appendChild(tl);
+    g.style.cursor='pointer';
+    g.addEventListener('click',()=>{selectedCat=cat.label;renderAll();});
+    svg.appendChild(g);
   });
-  sec.scrollIntoView({ behavior:'smooth', block:'start' });
+  const c=document.createElementNS(NS,'circle');
+  c.setAttribute('cx',CX);c.setAttribute('cy',CY);c.setAttribute('r',IR+2);c.setAttribute('fill','white');
+  svg.appendChild(c);
 }
 
-// ── Add item ──────────────────────────────────────────────────────────────────
-function addItem() {
-  const name = document.getElementById('item-name').value.trim();
-  const qty  = parseInt(document.getElementById('item-qty').value) || 1;
-  if (!name) { document.getElementById('item-name').focus(); return; }
-  pantry.push({ name, category: selectedCat, qty, unit:'piece', inStock:true });
-  document.getElementById('item-name').value = '';
-  document.getElementById('item-qty').value  = '1';
-  renderPantry();
+function renderStrip(){
+  const el=document.getElementById('cat-strip'); el.innerHTML='';
+  CATEGORIES.forEach(cat=>{
+    const b=document.createElement('button');
+    b.className='cat-chip'+(cat.label===selectedCat?' active':'');
+    b.style.background=cat.color; b.textContent=cat.emoji+' '+cat.label;
+    b.onclick=()=>{selectedCat=cat.label;renderAll();};
+    el.appendChild(b);
+  });
 }
-document.getElementById('item-name').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addItem();
-});
 
-// ── Tab switching ─────────────────────────────────────────────────────────────
-function setTab(el) {
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+function showSkeletons(){
+  document.getElementById('pill-grid').innerHTML=
+    '<div class="pill-skeleton"></div><div class="pill-skeleton"></div><div class="pill-skeleton"></div>';
+}
+
+function renderPantry(){
+  const cat=CATEGORIES.find(c=>c.label===selectedCat);
+  document.getElementById('cat-bar').style.background=cat.color;
+  document.getElementById('add-btn').style.background=cat.color;
+  document.getElementById('cat-title').textContent=selectedCat;
+  const items=pantry.filter(i=>i.category===selectedCat);
+  const grid=document.getElementById('pill-grid'); grid.innerHTML='';
+  if(!items.length){
+    grid.innerHTML='<span style="color:#bbb;font-style:italic;font-size:13px">No items yet — add one below!</span>';
+    return;
+  }
+  items.forEach(item=>{
+    const d=document.createElement('div'); d.className='pill';
+    if(item._daysLeft!==undefined&&item._daysLeft<=2) d.style.borderColor='#FFCCCC';
+    d.innerHTML=`<span>${EMOJI[item.name]||'🧺'}</span><span>${item.name}</span><span class="pill-check">✓</span>`;
+    grid.appendChild(d);
+  });
+}
+
+function setTab(el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el.classList.add('active');
 }
+function renderAll(){drawWheel();renderStrip();renderPantry();}
 
-// ── Render all ────────────────────────────────────────────────────────────────
-function renderAll() {
-  drawWheel();
-  renderStrip();
-  renderPantry();
-}
+document.getElementById('item-name').addEventListener('keydown',e=>{if(e.key==='Enter')addItem();});
+document.getElementById('auth-password').addEventListener('keydown',e=>{if(e.key==='Enter')signInEmail();});
 
-renderAll();
+// ── Boot: check existing session ──────────────────────────────────────────────
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session?.user) onSignedIn(session.user);
+  sb.auth.onAuthStateChange((_,session)=>{
+    if(session?.user&&!currentUser) onSignedIn(session.user);
+  });
+})();
 </script>
 </body>
 </html>
