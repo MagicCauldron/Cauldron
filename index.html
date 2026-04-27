@@ -119,10 +119,10 @@ html,body{
 #user-menu{
   position:absolute;top:70px;right:16px;
   background:white;border-radius:16px;padding:12px;
-  box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:100;
+  box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:999;
   display:none;min-width:200px;
 }
-#user-menu.open{display:block}
+#user-menu.open{display:block !important}
 .menu-name{font-size:13px;font-weight:800;color:var(--dark);margin-bottom:2px}
 .menu-email{font-size:11px;color:var(--muted);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:10px}
 .menu-btn{
@@ -307,7 +307,7 @@ html,body{
 
       <div class="app-header anim-1">
         <span class="app-title">Pantry Cauldron</span>
-        <div id="user-avatar-wrap" onclick="toggleMenu()" style="cursor:pointer"></div>
+        <div id="user-avatar-wrap" onclick="toggleMenu(event)" style="cursor:pointer"></div>
       </div>
 
       <div class="wheel-wrapper anim-2">
@@ -484,18 +484,20 @@ function onSignedIn(user){
   document.getElementById('menu-email').textContent=user.email||'OAuth user';
 
   if(avatar){
-    wrap.innerHTML=`<img class="user-avatar" src="${avatar}" alt="${name}" onclick="toggleMenu()"/>`;
+    wrap.innerHTML=`<img class="user-avatar" src="${avatar}" alt="${name}" onclick="toggleMenu(event)"/>`;
   } else {
     const initials=name.slice(0,2).toUpperCase();
-    wrap.innerHTML=`<div class="user-initials">${initials}</div>`;
+    wrap.innerHTML=`<div class="user-initials" onclick="toggleMenu(event)">${initials}</div>`;
   }
 
   loadPantry();
 }
 
 // ── User menu ─────────────────────────────────────────────────────────────────
-function toggleMenu(){
-  document.getElementById('user-menu').classList.toggle('open');
+function toggleMenu(e){
+  if(e) e.stopPropagation();
+  const menu=document.getElementById('user-menu');
+  menu.classList.toggle('open');
 }
 function closeMenu(){
   document.getElementById('user-menu').classList.remove('open');
@@ -503,7 +505,7 @@ function closeMenu(){
 document.addEventListener('click', e=>{
   const menu=document.getElementById('user-menu');
   const wrap=document.getElementById('user-avatar-wrap');
-  if(!menu.contains(e.target) && !wrap.contains(e.target)) closeMenu();
+  if(menu && wrap && !menu.contains(e.target) && !wrap.contains(e.target)) closeMenu();
 });
 
 // ── Pantry ────────────────────────────────────────────────────────────────────
