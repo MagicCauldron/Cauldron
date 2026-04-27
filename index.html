@@ -24,7 +24,6 @@
       padding: 16px;
     }
 
-    /* Phone shell */
     .phone {
       max-width: 400px;
       width: 100%;
@@ -48,7 +47,6 @@
       background: #fef7e8;
     }
 
-    /* Scroll area */
     .scroll-area {
       flex: 1;
       overflow-y: auto;
@@ -56,7 +54,7 @@
       scrollbar-width: thin;
     }
 
-    /* Centered cauldron + magic stick */
+    /* Cauldron SVG */
     .cauldron-header {
       display: flex;
       justify-content: center;
@@ -74,14 +72,13 @@
       transform: scale(0.96);
     }
 
-    /* main categories row (like wheel replacement) */
+    /* categories row */
     .categories-row {
       display: flex;
       gap: 12px;
       overflow-x: auto;
       padding: 8px 4px 16px;
       scrollbar-width: thin;
-      white-space: nowrap;
     }
     .cat-btn {
       flex-shrink: 0;
@@ -101,7 +98,6 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.15);
       color: white;
     }
-    /* category colors */
     .cat-Fruits.active { background: #F5C542; color: #2d2b1f; }
     .cat-Vegetables.active { background: #52B356; color: white; }
     .cat-Meat.active { background: #E05252; color: white; }
@@ -111,7 +107,7 @@
     .cat-Essentials.active { background: #A07850; color: white; }
     .cat-Other.active { background: #9B6EC8; color: white; }
 
-    /* Subcategory grid */
+    /* ingredient card */
     .subcat-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -123,7 +119,6 @@
       border-radius: 28px;
       padding: 12px 12px 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      transition: all 0.15s;
       border: 1px solid #f0e3d4;
     }
     .ingredient-name {
@@ -133,9 +128,6 @@
       align-items: center;
       gap: 6px;
       margin-bottom: 12px;
-    }
-    .emoji-badge {
-      font-size: 22px;
     }
     .toggle-row {
       display: flex;
@@ -189,7 +181,7 @@
       text-align: center;
     }
 
-    /* missing list section */
+    /* missing panel */
     .missing-section {
       background: #fff4e6;
       border-radius: 32px;
@@ -232,12 +224,10 @@
       align-items: center;
       gap: 6px;
       cursor: pointer;
-      transition: 0.1s;
     }
-    .share-btn:active { transform: scale(0.96); }
     .copy-btn { background: #4f46e5; }
 
-    /* bottom nav simplified */
+    /* bottom nav */
     .bottom-nav {
       display: flex;
       justify-content: space-around;
@@ -260,9 +250,24 @@
     .auth-container {
       padding: 40px 24px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
-    button {
-      font-family: inherit;
+    .oauth-btn {
+      background: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 60px;
+      width: 100%;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .facebook-btn {
+      background: #1877F2;
+      color: white;
     }
     .toast-msg {
       position: fixed;
@@ -280,13 +285,7 @@
       pointer-events: none;
     }
     .toast-msg.show { opacity: 1; }
-
-    /* loader */
-    .loader {
-      display: none;
-      text-align: center;
-      padding: 20px;
-    }
+    .loader { text-align: center; padding: 20px; display: none; }
     .spinner {
       width: 32px;
       height: 32px;
@@ -301,19 +300,19 @@
 </head>
 <body>
 <div class="phone" id="appContainer">
-  <div class="status-bar" id="statusBar">
-    <span>9:41</span>
-    <span>📶 🔋 100%</span>
+  <div class="status-bar">
+    <span>Pantry Cauldron</span>
+    <span>🪄</span>
   </div>
 
-  <!-- AUTH SECTION -->
+  <!-- AUTH SCREEN -->
   <div id="authScreen" style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
     <div class="auth-container">
-      <div style="font-size: 64px; margin-bottom: 16px;">🪄</div>
-      <h2 style="font-family: 'Inter'; margin-bottom: 24px;">Pantry Cauldron</h2>
-      <button id="googleBtn" style="background: white; border: none; padding: 12px 20px; border-radius: 60px; width: 100%; margin-bottom: 12px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">🔐 Sign in with Google</button>
-      <button id="fbBtn" style="background: #1877F2; color: white; border: none; padding: 12px 20px; border-radius: 60px; width: 100%; font-weight: 700;">📘 Sign in with Facebook</button>
-      <div id="authError" style="color: red; margin-top: 16px; font-size: 13px;"></div>
+      <div style="font-size: 64px;">🪄</div>
+      <h2 style="font-family: 'Inter';">Pantry Cauldron</h2>
+      <button class="oauth-btn" onclick="signInWith('google')">🔐 Sign in with Google</button>
+      <button class="oauth-btn facebook-btn" onclick="signInWith('facebook')">📘 Sign in with Facebook</button>
+      <div id="authError" style="color: red; font-size: 13px;"></div>
     </div>
   </div>
 
@@ -324,45 +323,38 @@
       <div id="userAvatar" style="width: 32px; height: 32px; background: #FF6B35; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer;">👤</div>
     </div>
     <div class="scroll-area" id="scrollArea">
-      <!-- Cauldron + magic stick SVG -->
+      <!-- Cauldron SVG -->
       <div class="cauldron-header">
-        <svg class="cauldron-svg" id="cauldronBtn" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Cauldron body -->
+        <svg class="cauldron-svg" id="cauldronBtn" viewBox="0 0 120 120" fill="none">
           <ellipse cx="60" cy="70" rx="38" ry="24" fill="#3E2A1F" stroke="#1F140E" stroke-width="2"/>
           <path d="M35 46 L85 46 C85 46 88 54 85 62 L35 62 C32 54 35 46 35 46Z" fill="#5C3E2A" stroke="#1F140E" stroke-width="1.5"/>
-          <!-- Magic stick -->
           <line x1="78" y1="28" x2="96" y2="12" stroke="#D4AF37" stroke-width="4" stroke-linecap="round"/>
           <circle cx="96" cy="12" r="5" fill="#FFD966"/>
-          <!-- Stars -->
           <path d="M68 36 L73 30 L78 36 L73 42 Z" fill="#FFD966"/>
-          <!-- Cauldron rim -->
           <ellipse cx="60" cy="46" rx="34" ry="8" fill="#7A5A3A" stroke="#4A3420" stroke-width="1.5"/>
-          <!-- Bubbles inside -->
           <circle cx="50" cy="60" r="3" fill="#D9B48B" opacity="0.8"/>
           <circle cx="65" cy="58" r="4" fill="#D9B48B" opacity="0.8"/>
-          <circle cx="55" cy="66" r="2.5" fill="#D9B48B" opacity="0.6"/>
         </svg>
       </div>
 
-      <!-- Category row (instead of wheel) -->
+      <!-- Categories row -->
       <div class="categories-row" id="categoryRow"></div>
-
-      <!-- Subcategory grid appears here -->
+      <!-- Subcategories will be injected here -->
       <div id="subcatContainer"></div>
 
-      <!-- Missing ingredients + share panel -->
+      <!-- Missing panel -->
       <div class="missing-section" id="missingPanel">
         <div class="missing-title">
           📋 Missing ingredients
-          <span style="font-size: 12px; background: #FF6B35; color: white; padding: 2px 8px; border-radius: 20px;" id="missingCount">0</span>
+          <span style="font-size:12px; background:#FF6B35; color:white; padding:2px 8px; border-radius:20px;" id="missingCount">0</span>
         </div>
-        <div class="missing-items" id="missingListText">Nothing missing yet. Toggle off items you don't have.</div>
+        <div class="missing-items" id="missingListText">Nothing missing yet.</div>
         <div class="share-buttons">
           <button id="copyMissingBtn" class="share-btn copy-btn">📋 Copy list</button>
-          <button id="shareMissingBtn" class="share-btn">📱 Share (WhatsApp, Messenger...)</button>
+          <button id="shareMissingBtn" class="share-btn">📱 Share</button>
         </div>
       </div>
-      <div class="loader" id="loader"><div class="spinner"></div><span style="font-size:12px;">Syncing...</span></div>
+      <div class="loader" id="loader"><div class="spinner"></div></div>
     </div>
     <div class="bottom-nav">
       <div class="nav-item active" data-tab="ingredients">🧂 Ingredients</div>
@@ -380,91 +372,21 @@
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let currentUser = null;
-  let pantryItems = [];     // array of {id, name, category, subcategory, quantity, unit, have}
+  let pantryItems = [];
   let selectedMainCat = "Vegetables";
 
-  // ---------- DATA MODEL: categories + subcategories with emoji & default unit ----------
+  // Category tree (same as before)
   const categoryTree = {
-    "Vegetables": {
-      color: "#52B356", emoji: "🥦",
-      subs: [
-        { name: "Spinach", emoji: "🌿", unit: "grams", defaultQty: 200 },
-        { name: "Broccoli", emoji: "🥦", unit: "grams", defaultQty: 300 },
-        { name: "Kale", emoji: "🥬", unit: "grams", defaultQty: 150 },
-        { name: "Peas", emoji: "🟢", unit: "grams", defaultQty: 200 },
-        { name: "Carrots", emoji: "🥕", unit: "pieces", defaultQty: 4 },
-        { name: "Zucchini", emoji: "🥒", unit: "pieces", defaultQty: 2 }
-      ]
-    },
-    "Fruits": {
-      color: "#F5C542", emoji: "🍎",
-      subs: [
-        { name: "Lemon", emoji: "🍋", unit: "pieces", defaultQty: 2 },
-        { name: "Apple", emoji: "🍎", unit: "pieces", defaultQty: 3 },
-        { name: "Banana", emoji: "🍌", unit: "pieces", defaultQty: 4 },
-        { name: "Orange", emoji: "🍊", unit: "pieces", defaultQty: 3 },
-        { name: "Grapes", emoji: "🍇", unit: "grams", defaultQty: 300 },
-        { name: "Strawberry", emoji: "🍓", unit: "grams", defaultQty: 250 }
-      ]
-    },
-    "Meat": {
-      color: "#E05252", emoji: "🥩",
-      subs: [
-        { name: "Chicken", emoji: "🍗", unit: "grams", defaultQty: 500 },
-        { name: "Pork", emoji: "🐖", unit: "grams", defaultQty: 400 },
-        { name: "Lamb", emoji: "🐑", unit: "grams", defaultQty: 400 },
-        { name: "Beef", emoji: "🥩", unit: "grams", defaultQty: 500 }
-      ]
-    },
-    "Dairy": {
-      color: "#4BAEE8", emoji: "🥛",
-      subs: [
-        { name: "Milk", emoji: "🥛", unit: "liters", defaultQty: 1 },
-        { name: "Yogurt", emoji: "🥄", unit: "grams", defaultQty: 400 },
-        { name: "Gouda Cheese", emoji: "🧀", unit: "grams", defaultQty: 200 },
-        { name: "Edamer Cheese", emoji: "🧀", unit: "grams", defaultQty: 200 },
-        { name: "Blue Cheese", emoji: "🧀", unit: "grams", defaultQty: 150 },
-        { name: "Butter", emoji: "🧈", unit: "grams", defaultQty: 250 }
-      ]
-    },
-    "Fish": {
-      color: "#3A9BD5", emoji: "🐟",
-      subs: [
-        { name: "Salmon", emoji: "🐟", unit: "grams", defaultQty: 300 },
-        { name: "Tuna (canned)", emoji: "🥫", unit: "cans", defaultQty: 2 },
-        { name: "Cod", emoji: "🐠", unit: "grams", defaultQty: 400 },
-        { name: "Sardines", emoji: "🐟", unit: "cans", defaultQty: 1 }
-      ]
-    },
-    "Spices": {
-      color: "#F4883E", emoji: "🌶️",
-      subs: [
-        { name: "Paprika", emoji: "🌶️", unit: "tbsp", defaultQty: 2 },
-        { name: "Cumin", emoji: "🌿", unit: "tbsp", defaultQty: 1 },
-        { name: "Oregano", emoji: "🌿", unit: "tbsp", defaultQty: 1 },
-        { name: "Salt", emoji: "🧂", unit: "tbsp", defaultQty: 3 }
-      ]
-    },
-    "Essentials": {
-      color: "#A07850", emoji: "🥫",
-      subs: [
-        { name: "Rice", emoji: "🍚", unit: "grams", defaultQty: 1000 },
-        { name: "Pasta", emoji: "🍝", unit: "grams", defaultQty: 500 },
-        { name: "Olive Oil", emoji: "🫒", unit: "liters", defaultQty: 1 },
-        { name: "Flour", emoji: "🌾", unit: "grams", defaultQty: 1000 }
-      ]
-    },
-    "Other": {
-      color: "#9B6EC8", emoji: "🧴",
-      subs: [
-        { name: "Honey", emoji: "🍯", unit: "grams", defaultQty: 300 },
-        { name: "Vinegar", emoji: "🍶", unit: "ml", defaultQty: 500 },
-        { name: "Nuts", emoji: "🌰", unit: "grams", defaultQty: 200 }
-      ]
-    }
+    "Vegetables": { color: "#52B356", emoji: "🥦", subs: [{ name: "Spinach", emoji: "🌿", unit: "grams", defaultQty: 200 },{ name: "Broccoli", emoji: "🥦", unit: "grams", defaultQty: 300 },{ name: "Kale", emoji: "🥬", unit: "grams", defaultQty: 150 },{ name: "Peas", emoji: "🟢", unit: "grams", defaultQty: 200 },{ name: "Carrots", emoji: "🥕", unit: "pieces", defaultQty: 4 },{ name: "Zucchini", emoji: "🥒", unit: "pieces", defaultQty: 2 }] },
+    "Fruits": { color: "#F5C542", emoji: "🍎", subs: [{ name: "Lemon", emoji: "🍋", unit: "pieces", defaultQty: 2 },{ name: "Apple", emoji: "🍎", unit: "pieces", defaultQty: 3 },{ name: "Banana", emoji: "🍌", unit: "pieces", defaultQty: 4 },{ name: "Orange", emoji: "🍊", unit: "pieces", defaultQty: 3 },{ name: "Grapes", emoji: "🍇", unit: "grams", defaultQty: 300 },{ name: "Strawberry", emoji: "🍓", unit: "grams", defaultQty: 250 }] },
+    "Meat": { color: "#E05252", emoji: "🥩", subs: [{ name: "Chicken", emoji: "🍗", unit: "grams", defaultQty: 500 },{ name: "Pork", emoji: "🐖", unit: "grams", defaultQty: 400 },{ name: "Lamb", emoji: "🐑", unit: "grams", defaultQty: 400 },{ name: "Beef", emoji: "🥩", unit: "grams", defaultQty: 500 }] },
+    "Dairy": { color: "#4BAEE8", emoji: "🥛", subs: [{ name: "Milk", emoji: "🥛", unit: "liters", defaultQty: 1 },{ name: "Yogurt", emoji: "🥄", unit: "grams", defaultQty: 400 },{ name: "Gouda Cheese", emoji: "🧀", unit: "grams", defaultQty: 200 },{ name: "Edamer Cheese", emoji: "🧀", unit: "grams", defaultQty: 200 },{ name: "Blue Cheese", emoji: "🧀", unit: "grams", defaultQty: 150 },{ name: "Butter", emoji: "🧈", unit: "grams", defaultQty: 250 }] },
+    "Fish": { color: "#3A9BD5", emoji: "🐟", subs: [{ name: "Salmon", emoji: "🐟", unit: "grams", defaultQty: 300 },{ name: "Tuna (canned)", emoji: "🥫", unit: "cans", defaultQty: 2 },{ name: "Cod", emoji: "🐠", unit: "grams", defaultQty: 400 },{ name: "Sardines", emoji: "🐟", unit: "cans", defaultQty: 1 }] },
+    "Spices": { color: "#F4883E", emoji: "🌶️", subs: [{ name: "Paprika", emoji: "🌶️", unit: "tbsp", defaultQty: 2 },{ name: "Cumin", emoji: "🌿", unit: "tbsp", defaultQty: 1 },{ name: "Oregano", emoji: "🌿", unit: "tbsp", defaultQty: 1 },{ name: "Salt", emoji: "🧂", unit: "tbsp", defaultQty: 3 }] },
+    "Essentials": { color: "#A07850", emoji: "🥫", subs: [{ name: "Rice", emoji: "🍚", unit: "grams", defaultQty: 1000 },{ name: "Pasta", emoji: "🍝", unit: "grams", defaultQty: 500 },{ name: "Olive Oil", emoji: "🫒", unit: "liters", defaultQty: 1 },{ name: "Flour", emoji: "🌾", unit: "grams", defaultQty: 1000 }] },
+    "Other": { color: "#9B6EC8", emoji: "🧴", subs: [{ name: "Honey", emoji: "🍯", unit: "grams", defaultQty: 300 },{ name: "Vinegar", emoji: "🍶", unit: "ml", defaultQty: 500 },{ name: "Nuts", emoji: "🌰", unit: "grams", defaultQty: 200 }] }
   };
 
-  // Helper: show toast
   function toast(msg) {
     const el = document.getElementById('toastMessage');
     el.textContent = msg;
@@ -472,13 +394,11 @@
     setTimeout(() => el.classList.remove('show'), 2500);
   }
 
-  // Auth handlers
-  async function signInWith(provider) {
+  // Global signIn function for inline onclick
+  window.signInWith = async function(provider) {
     const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.href } });
     if (error) document.getElementById('authError').innerText = error.message;
-  }
-  document.getElementById('googleBtn')?.addEventListener('click', () => signInWith('google'));
-  document.getElementById('fbBtn')?.addEventListener('click', () => signInWith('facebook'));
+  };
 
   async function loadPantryItems() {
     if (!currentUser) return [];
@@ -489,16 +409,11 @@
 
   async function savePantryItem(item) {
     if (!currentUser) return;
-    // item: {name, category, subcategory, quantity, unit, have}
     const existing = pantryItems.find(i => i.name === item.name && i.category === item.category);
     if (existing) {
-      const { error } = await sb.from('pantry_items').update({
-        quantity: item.quantity,
-        have: item.have
-      }).eq('id', existing.id);
-      if (error) toast("⚠️ Update error");
+      await sb.from('pantry_items').update({ quantity: item.quantity, have: item.have }).eq('id', existing.id);
     } else {
-      const { error } = await sb.from('pantry_items').insert([{
+      await sb.from('pantry_items').insert([{
         user_id: currentUser.id,
         name: item.name,
         category: item.category,
@@ -509,7 +424,6 @@
         added_date: new Date().toISOString(),
         shelf_life_days: 14
       }]);
-      if (error) toast("⚠️ Insert error");
     }
     await refreshPantryAndUI();
   }
@@ -522,7 +436,6 @@
     updateMissingList();
   }
 
-  // Render category row
   function renderCategories() {
     const row = document.getElementById('categoryRow');
     if (!row) return;
@@ -542,7 +455,6 @@
     });
   }
 
-  // Render subcategory cards with toggle & quantity
   function renderSubcategories() {
     const container = document.getElementById('subcatContainer');
     if (!container) return;
@@ -551,108 +463,68 @@
     container.innerHTML = '';
     for (let sub of currentCat.subs) {
       const existing = pantryItems.find(i => i.name === sub.name && i.category === selectedMainCat);
-      const have = existing ? existing.have : true;    // default true (have it)
+      const have = existing ? existing.have : true;
       const qty = existing ? existing.quantity : sub.defaultQty;
-      const unit = sub.unit;
-
       const card = document.createElement('div');
       card.className = 'ingredient-card';
       card.innerHTML = `
-        <div class="ingredient-name">
-          <span class="emoji-badge">${sub.emoji}</span>
-          <span>${sub.name}</span>
-        </div>
-        <div class="toggle-row">
-          <span style="font-size:13px; font-weight:500;">I have it</span>
-          <div class="toggle-switch ${have ? 'active' : ''}" data-name="${sub.name}"></div>
-        </div>
-        <div class="qty-row" style="margin-top: 8px;">
-          <input type="number" step="any" value="${qty}" class="qty-input" data-name="${sub.name}" placeholder="Quantity" style="width:100%;">
-          <div style="font-size:11px; color:#7f6b55; margin-top:4px;">${unit}</div>
-        </div>
-        <div class="missing-badge" id="missingBadge-${sub.name.replace(/\s/g,'')}" style="display: ${have ? 'none' : 'block'};">⚠️ Missing</div>
+        <div class="ingredient-name"><span class="emoji-badge">${sub.emoji}</span><span>${sub.name}</span></div>
+        <div class="toggle-row"><span style="font-size:13px;">I have it</span><div class="toggle-switch ${have ? 'active' : ''}" data-name="${sub.name}"></div></div>
+        <div><input type="number" step="any" value="${qty}" class="qty-input" data-name="${sub.name}" placeholder="Quantity"></div>
+        <div style="font-size:11px; color:#7f6b55; margin-top:4px;">${sub.unit}</div>
+        <div class="missing-badge" id="badge-${sub.name.replace(/\s/g,'')}" style="display: ${have ? 'none' : 'block'};">⚠️ Missing</div>
       `;
-      // Attach events
       const toggleDiv = card.querySelector('.toggle-switch');
       const qtyInput = card.querySelector('.qty-input');
-      toggleDiv.addEventListener('click', async (e) => {
-        e.stopPropagation();
+      toggleDiv.addEventListener('click', async () => {
         const newHave = !toggleDiv.classList.contains('active');
         if (newHave) toggleDiv.classList.add('active');
         else toggleDiv.classList.remove('active');
-        const missingBadge = card.querySelector(`.missing-badge`);
-        if (missingBadge) missingBadge.style.display = newHave ? 'none' : 'block';
-        const qtyVal = parseFloat(qtyInput.value) || sub.defaultQty;
-        await savePantryItem({
-          name: sub.name,
-          category: selectedMainCat,
-          subcategory: sub.name,
-          quantity: qtyVal,
-          unit: unit,
-          have: newHave
-        });
+        const badge = card.querySelector('.missing-badge');
+        if (badge) badge.style.display = newHave ? 'none' : 'block';
+        const newQty = parseFloat(qtyInput.value) || sub.defaultQty;
+        await savePantryItem({ name: sub.name, category: selectedMainCat, subcategory: sub.name, quantity: newQty, unit: sub.unit, have: newHave });
       });
       qtyInput.addEventListener('change', async () => {
         const newQty = parseFloat(qtyInput.value) || sub.defaultQty;
         const currentHave = toggleDiv.classList.contains('active');
-        await savePantryItem({
-          name: sub.name,
-          category: selectedMainCat,
-          subcategory: sub.name,
-          quantity: newQty,
-          unit: unit,
-          have: currentHave
-        });
+        await savePantryItem({ name: sub.name, category: selectedMainCat, subcategory: sub.name, quantity: newQty, unit: sub.unit, have: currentHave });
       });
       container.appendChild(card);
     }
   }
 
-  // Update missing ingredients list and share panel
   function updateMissingList() {
     const missing = pantryItems.filter(item => item.have === false);
     const missingNames = missing.map(i => `${i.name} (${i.quantity} ${i.unit})`).join(', ');
     const textDiv = document.getElementById('missingListText');
     const countSpan = document.getElementById('missingCount');
-    if (!textDiv) return;
-    if (missing.length === 0) {
-      textDiv.innerText = '🎉 No missing ingredients! Everything is stocked.';
-      countSpan.innerText = '0';
-    } else {
-      textDiv.innerText = missingNames;
-      countSpan.innerText = missing.length;
-    }
+    if (textDiv) textDiv.innerText = missing.length ? missingNames : '🎉 No missing ingredients!';
+    if (countSpan) countSpan.innerText = missing.length;
   }
 
-  // share & copy
   function getMissingText() {
     const missing = pantryItems.filter(item => item.have === false);
     if (missing.length === 0) return "All ingredients are available! ✨";
     return "🪄 Missing groceries:\n" + missing.map(i => `- ${i.name} (${i.quantity} ${i.unit})`).join("\n");
   }
+
+  // Share/copy handlers
   document.getElementById('copyMissingBtn')?.addEventListener('click', () => {
-    const txt = getMissingText();
-    navigator.clipboard.writeText(txt);
+    navigator.clipboard.writeText(getMissingText());
     toast("📋 List copied!");
   });
   document.getElementById('shareMissingBtn')?.addEventListener('click', () => {
     const txt = getMissingText();
-    if (navigator.share) {
-      navigator.share({ title: 'My Pantry Missing Items', text: txt }).catch(() => toast("Share cancelled"));
-    } else {
-      toast("Press copy instead (your browser lacks native share)");
-    }
+    if (navigator.share) navigator.share({ title: 'My Pantry Missing Items', text: txt }).catch(() => toast("Share cancelled"));
+    else toast("Press copy instead (your browser lacks native share)");
   });
 
-  // Cauldron animation + recipe suggestions (bonus from previous logic)
-  async function triggerCauldron() {
-    toast("✨ Cauldron bubbling... Recipe suggestions coming soon!");
-    // For now just a cute effect, you can later connect Spoonacular using your key
-  }
-  document.getElementById('cauldronBtn')?.addEventListener('click', triggerCauldron);
+  // Cauldron tap
+  document.getElementById('cauldronBtn')?.addEventListener('click', () => toast("✨ Cauldron bubbling... Recipe suggestions coming soon!"));
 
-  // Tab navigation (ingredients / recipes / shopping list)
-  function switchTab(tab) {
+  // Tab switching
+  async function switchTab(tab) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.querySelector(`.nav-item[data-tab="${tab}"]`).classList.add('active');
     const scrollArea = document.getElementById('scrollArea');
@@ -662,44 +534,42 @@
         <div class="categories-row" id="categoryRow"></div>
         <div id="subcatContainer"></div>
         <div class="missing-section" id="missingPanel">
-          <div class="missing-title">📋 Missing ingredients <span style="font-size:12px; background:#FF6B35; color:white; padding:2px 8px; border-radius:20px;" id="missingCount">0</span></div>
+          <div class="missing-title">📋 Missing ingredients <span id="missingCount">0</span></div>
           <div class="missing-items" id="missingListText"></div>
           <div class="share-buttons"><button id="copyMissingBtn" class="share-btn copy-btn">📋 Copy list</button><button id="shareMissingBtn" class="share-btn">📱 Share</button></div>
         </div>
-        <div class="loader" id="loader"><div class="spinner"></div></div>
+        <div class="loader" id="loader"></div>
       `;
-      // re-attach elements
-      window.renderCategories = renderCategories; window.renderSubcategories = renderSubcategories;
+      // Reattach everything
       renderCategories();
       renderSubcategories();
       updateMissingList();
       document.getElementById('copyMissingBtn')?.addEventListener('click', () => { navigator.clipboard.writeText(getMissingText()); toast("Copied"); });
       document.getElementById('shareMissingBtn')?.addEventListener('click', () => { const txt = getMissingText(); if(navigator.share) navigator.share({text:txt}); else toast("Use copy"); });
-      document.getElementById('cauldronBtn')?.addEventListener('click', triggerCauldron);
+      document.getElementById('cauldronBtn')?.addEventListener('click', () => toast("✨ Recipe suggestions coming soon!"));
     } else if (tab === 'recipes') {
-      scrollArea.innerHTML = `<div style="padding: 40px 20px; text-align:center;">🍲 Recipe generator will use your pantry ingredients. Tap the cauldron to start! (Coming with Spoonacular integration)</div>`;
+      scrollArea.innerHTML = `<div style="padding: 40px 20px; text-align:center;">🍲 Recipe generator will use your pantry ingredients. Tap the cauldron to start!</div>`;
     } else if (tab === 'shopping') {
       scrollArea.innerHTML = `<div style="padding: 20px;"><h3>🛒 Shopping List</h3><div id="shoppingListDynamic">Loading...</div></div>`;
-      // Load shopping list from Supabase (shopping_list table)
       const { data } = await sb.from('shopping_list').select('*').eq('user_id', currentUser.id);
-      const listHtml = data?.length ? data.map(i=>`<div style="background:white; border-radius: 60px; padding: 12px; margin:8px 0; display:flex; justify-content:space-between;">${i.name}<button onclick="removeFromShopping('${i.id}')">🗑️</button></div>`).join('') : "<div>Empty</div>";
+      const listHtml = data?.length ? data.map(i=>`<div style="background:white; border-radius:60px; padding:12px; margin:8px 0; display:flex; justify-content:space-between;">${i.name}<button onclick="window.removeFromShopping('${i.id}')">🗑️</button></div>`).join('') : "<div>Empty</div>";
       document.getElementById('shoppingListDynamic').innerHTML = listHtml;
       window.removeFromShopping = async (id) => { await sb.from('shopping_list').delete().eq('id',id); switchTab('shopping'); };
     }
   }
-  window.removeFromShopping = () => {};
+
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
   });
 
-  // User sign out & session
-  async function signOut() {
+  // Sign out
+  window.signOut = async function() {
     await sb.auth.signOut();
     location.reload();
-  }
+  };
   document.getElementById('userAvatar')?.addEventListener('click', () => { if(confirm("Sign out?")) signOut(); });
 
-  // Auth listener & init
+  // Auth state listener
   sb.auth.onAuthStateChange(async (event, session) => {
     if (session?.user) {
       currentUser = session.user;
@@ -708,12 +578,13 @@
       await refreshPantryAndUI();
       renderCategories();
       renderSubcategories();
-      updateMissingList();
     } else {
       document.getElementById('authScreen').style.display = 'flex';
       document.getElementById('mainApp').style.display = 'none';
     }
   });
+
+  // Initial session check
   sb.auth.getSession().then(({ data: { session } }) => {
     if (session?.user) {
       currentUser = session.user;
