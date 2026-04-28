@@ -97,8 +97,16 @@ html,body{
 .auth-btn:hover{filter:brightness(1.07)}
 
 .auth-note{font-size:11px;color:var(--muted);text-align:center;line-height:1.5;max-width:280px}
-#auth-error{color:#E05252;font-size:12px;font-weight:700;text-align:center;min-height:16px}
+#auth-error{color:#E05252;font-size:13px;font-weight:700;text-align:center;min-height:16px;padding:6px 12px;border-radius:10px;background:#FFF0F0;display:none}
+#auth-error.visible{display:block}
 #auth-msg  {color:var(--muted);font-size:12px;text-align:center;min-height:16px}
+.demo-btn{
+  width:100%;border:2px dashed var(--border);border-radius:16px;padding:13px 20px;
+  font-size:14px;font-weight:700;font-family:var(--font);color:var(--muted);
+  background:transparent;cursor:pointer;transition:all .2s;
+}
+.demo-btn:hover{border-color:var(--orange);color:var(--orange);background:#FFF8F4}
+.oauth-btn:disabled,.auth-btn:disabled{opacity:.6;cursor:not-allowed;transform:none !important}
 
 /* ── App screen ── */
 #app-screen{display:none}
@@ -289,6 +297,9 @@ html,body{
     <div class="auth-note">By continuing you agree to our Terms of Service. Your pantry data is private and only visible to you.</div>
     <div id="auth-msg"></div>
     <div id="auth-error"></div>
+
+    <div class="auth-divider">or just exploring?</div>
+    <button class="demo-btn" onclick="signInDemo()">🧪 Try Demo — No Account Needed</button>
   </div>
 
   <!-- ── APP SCREEN ── -->
@@ -420,8 +431,16 @@ function toast(msg){
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-function setErr(m){document.getElementById('auth-error').textContent=m}
+function setErr(m){
+  const el=document.getElementById('auth-error');
+  el.textContent=m;
+  el.classList.toggle('visible', !!m);
+}
 function setMsg(m){document.getElementById('auth-msg').textContent=m}
+
+function setBtnsDisabled(disabled){
+  document.querySelectorAll('.oauth-btn,.auth-btn,.demo-btn').forEach(b=>b.disabled=disabled);
+}
 
 function toggleEmailForm(){
   const f=document.getElementById('email-form');
@@ -429,22 +448,31 @@ function toggleEmailForm(){
 }
 
 async function signInWith(provider){
-  setErr(''); setMsg('Redirecting...');
-  const redirectTo = window.location.href;
+  setErr(''); setMsg('Redirecting to '+provider+'...');
+  setBtnsDisabled(true);
+  const redirectTo = window.location.origin
+    ? window.location.href
+    : 'https://magiccauldron.github.io/Cauldron';
   const { error } = await sb.auth.signInWithOAuth({
     provider,
     options: { redirectTo }
   });
-  if(error){ setMsg(''); setErr(error.message); }
+  if(error){
+    setMsg('');
+    setErr('⚠️ '+provider+' login failed: '+error.message+'. Try the email option or Demo mode below.');
+  }
+  setBtnsDisabled(false);
 }
 
 async function signInEmail(){
   setErr(''); setMsg('Signing in...');
   const email=document.getElementById('auth-email').value.trim();
   const pw=document.getElementById('auth-password').value;
-  if(!email||!pw){ setMsg(''); setErr('Enter your email and password.'); return; }
+  if(!email||!pw){ setMsg(''); setErr('Please enter your email and password.'); return; }
+  setBtnsDisabled(true);
   const {data,error}=await sb.auth.signInWithPassword({email,password:pw});
-  if(error){ setMsg(''); setErr(error.message); return; }
+  setBtnsDisabled(false);
+  if(error){ setMsg(''); setErr('⚠️ '+error.message); return; }
   onSignedIn(data.user);
 }
 
@@ -452,16 +480,29 @@ async function signUpEmail(){
   setErr(''); setMsg('Creating account...');
   const email=document.getElementById('auth-email').value.trim();
   const pw=document.getElementById('auth-password').value;
-  if(!email||!pw){ setMsg(''); setErr('Enter an email and password.'); return; }
+  if(!email||!pw){ setMsg(''); setErr('Please enter an email and password.'); return; }
   if(pw.length<6){ setMsg(''); setErr('Password must be at least 6 characters.'); return; }
+  setBtnsDisabled(true);
   const {error}=await sb.auth.signUp({email,password:pw});
-  if(error){ setMsg(''); setErr(error.message); return; }
+  setBtnsDisabled(false);
+  if(error){ setMsg(''); setErr('⚠️ '+error.message); return; }
   setMsg('✅ Check your email to confirm your account!');
+}
+
+function signInDemo(){
+  const demoUser = {
+    id: 'demo-user-'+Math.random().toString(36).slice(2,8),
+    email: 'demo@pantrycauldron.app',
+    user_metadata: { full_name: 'Demo Chef', avatar_url: null },
+    _isDemo: true,
+  };
+  toast('👋 Welcome to the demo!');
+  onSignedIn(demoUser);
 }
 
 async function signOut(){
   closeMenu();
-  await sb.auth.signOut();
+  if(!currentUser._isDemo) await sb.auth.signOut();
   currentUser=null; pantry=[];
   document.getElementById('app-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
@@ -511,6 +552,20 @@ document.addEventListener('click', e=>{
 // ── Pantry ────────────────────────────────────────────────────────────────────
 async function loadPantry(){
   showSkeletons();
+
+  // Demo mode — skip Supabase
+  if(currentUser._isDemo){
+    pantry = SEEDS.map(i=>({...i, user_id:currentUser.id, added_date:new Date().toISOString()}));
+    pantry.forEach(item=>{
+      if(item.added_date&&item.shelf_life_days){
+        const exp=new Date(item.added_date).getTime()+item.shelf_life_days*86400000;
+        item._daysLeft=Math.ceil((exp-Date.now())/86400000);
+      }
+    });
+    renderAll(); checkExpiry();
+    return;
+  }
+
   const {data,error}=await sb
     .from('pantry_items').select('*')
     .eq('user_id',currentUser.id)
@@ -544,6 +599,14 @@ async function addItem(){
   const row={user_id:currentUser.id,name,category:selectedCat,
     quantity:qty,unit:'piece',shelf_life_days:7,
     added_date:new Date().toISOString()};
+
+  if(currentUser._isDemo){
+    row._daysLeft=7; pantry.unshift(row);
+    document.getElementById('item-name').value='';
+    document.getElementById('item-qty').value='1';
+    toast('✅ '+name+' added!'); renderPantry(); return;
+  }
+
   const {data,error}=await sb.from('pantry_items').insert([row]).select();
   if(error){toast('❌ '+error.message);return;}
   const saved=data?.[0]||row; saved._daysLeft=7;
