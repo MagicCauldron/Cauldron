@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Home - Pantry Cauldron</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components/navBar.css">
+  <link rel="stylesheet" href="styles/components/wheelMenu.css">
+  <link rel="stylesheet" href="styles/components/cauldron.css">
+</head>
+<body>
+  <div class="phone">
+    <div class="status-bar">
+      <span>10:09 AM</span>
+      <div class="status-icons"><span>📶</span><span>🔋 100%</span></div>
+    </div>
+
+    <div class="app-header">
+      <h1>Pantry Cauldron</h1>
+      <a href="profile.html" class="icon-btn">🔔</a>
+    </div>
+
+    <div class="scroll-area">
+      <div class="hero-section">
+        <div id="wheelMenu" class="wheel-container"></div>
+        <div id="cauldronContainer" class="cauldron-wrapper"></div>
+        <div class="suggest-text">Suggest<br>Recipes</div>
+      </div>
+    </div>
+
+    <div id="bottomNav" class="bottom-nav"></div>
+
+    <div id="authScreen" class="auth-overlay">
+      <div class="auth-box">
+        <div class="auth-icon">🪄</div>
+        <h2>Pantry Cauldron</h2>
+        <p>Mock login for development.</p>
+        <button onclick="login()" class="auth-btn google">🔐 Sign in with Google (Mock)</button>
+        <button onclick="login()" class="auth-btn fb">📘 Sign in with Facebook (Mock)</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { CATEGORIES } from './js/utils/constants.js';
+    import { initNavBar } from './js/components/navBar.js';
+    import { initWheelMenu } from './js/components/wheelMenu.js';
+    import { initCauldron } from './js/components/cauldron.js';
+    import { authService } from './js/services/authService.js';
+
+    window.login = () => {
+      authService.login();
+      document.getElementById('authScreen').style.display = 'none';
+      initializeApp();
+    };
+
+    if (authService.isAuthenticated()) {
+      document.getElementById('authScreen').style.display = 'none';
+      initializeApp();
+    }
+
+    function initializeApp() {
+      initNavBar();
+      initWheelMenu(CATEGORIES);
+      initCauldron();
+    }
+  </script>
+</body>
+</html>

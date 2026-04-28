@@ -1,0 +1,39 @@
+
+.ingredients-section { padding: 0 20px 20px; }
+.subcat-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 10px; }
+.subcat-tabs::-webkit-scrollbar { display: none; }
+.subcat-tab {
+  padding: 8px 16px; border-radius: 12px; background: #f5f5f5; color: #777;
+  font-size: 13px; font-weight: 700; cursor: pointer; border: none; white-space: nowrap;
+}
+.subcat-tab.active { background: #333; color: #fff; }
+
+.ingredient-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 12px; margin-top: 15px;
+}
+.ing-card {
+  display: flex; flex-direction: column; align-items: center;
+  cursor: pointer; position: relative;
+}
+.ing-icon-wrapper {
+  width: 100%; aspect-ratio: 1; background: #f9f9f9; border-radius: 20px;
+  display: flex; justify-content: center; align-items: center; font-size: 32px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03); margin-bottom: 6px; position: relative;
+  transition: 0.2s; border: 2px solid transparent;
+}
+.ing-card.active .ing-icon-wrapper { border-color: #52B356; background: #fff; box-shadow: 0 8px 15px rgba(0,0,0,0.08); }
+.ing-card.inactive { opacity: 0.4; filter: grayscale(1); }
+.ing-label { font-size: 11px; font-weight: 700; color: #333; text-align: center; line-height: 1.1; }
+
+.check-badge {
+  position: absolute; top: -5px; right: -5px; width: 22px; height: 22px;
+  background: #52B356; color: white; border-radius: 50%; font-size: 12px;
+  display: flex; justify-content: center; align-items: center; border: 2px solid white;
+  opacity: 0; transform: scale(0); transition: 0.2s;
+}
+.ing-card.active .check-badge { opacity: 1; transform: scale(1); }
+
+/* Exclusion/Allergen theme */
+.exclusion-mode .ing-card.active .check-badge { background: #ff4444; }
+.exclusion-mode .ing-card.active .ing-icon-wrapper { border-color: #ff4444; }

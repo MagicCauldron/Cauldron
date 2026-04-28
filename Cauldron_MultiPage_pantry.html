@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Pantry - Pantry Cauldron</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components/navBar.css">
+  <link rel="stylesheet" href="styles/components/ingredientGrid.css">
+</head>
+<body>
+  <div class="phone">
+    <div class="status-bar">
+      <span>10:09 AM</span>
+      <div class="status-icons"><span>📶</span><span>🔋 100%</span></div>
+    </div>
+
+    <div class="app-header">
+      <h1>My Pantry</h1>
+      <button class="icon-btn">🔍</button>
+    </div>
+
+    <div class="scroll-area">
+      <!-- 2-Layer Submenu System -->
+      <div class="ingredients-section" style="margin-top: 20px;">
+        <div id="catTabs" class="subcat-tabs" style="margin-bottom: 10px;"></div>
+        <div id="subcatTabs" class="subcat-tabs"></div>
+        <div id="ingredientGrid" class="ingredient-grid"></div>
+      </div>
+    </div>
+
+    <div id="bottomNav" class="bottom-nav"></div>
+  </div>
+
+  <script type="module">
+    import { CATEGORIES } from './js/utils/constants.js';
+    import { initNavBar } from './js/components/navBar.js';
+    import { initIngredientGrid } from './js/components/ingredientGrid.js';
+
+    initNavBar();
+    
+    // Logic for the extra "Category" layer on this page
+    const catTabs = document.getElementById('catTabs');
+    CATEGORIES.forEach((cat, index) => {
+      const btn = document.createElement('button');
+      btn.className = `subcat-tab ${index === 1 ? 'active' : ''}`; // default to Veg
+      btn.innerText = cat.label;
+      btn.onclick = () => {
+        document.querySelectorAll('#catTabs .subcat-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        initIngredientGrid(cat.label);
+      };
+      catTabs.appendChild(btn);
+    });
+
+    initIngredientGrid(CATEGORIES[1].label);
+  </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+
+.bottom-nav {
+  position: absolute; bottom: 0; width: 100%; background: #fff;
+  display: flex; justify-content: space-around; padding: 12px 10px 34px;
+  border-top: 1px solid #f0f0f0; z-index: 20;
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center;
+  color: #bbb; font-size: 10px; font-weight: 600; cursor: pointer; gap: 4px;
+  transition: 0.2s;
+}
+.nav-item.active { color: #FF6B35; }
+.nav-icon { font-size: 22px; }

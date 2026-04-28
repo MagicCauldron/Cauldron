@@ -1,0 +1,13 @@
+
+.hero-section { position: relative; height: 380px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 20px; }
+.wheel-container { position: absolute; width: 340px; height: 340px; top: 10px; }
+.wheel-btn {
+  position: absolute; width: 72px; height: 72px; border-radius: 18px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: white; cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1); border: 2px solid rgba(255,255,255,0.1);
+}
+.wheel-btn.active { transform: scale(1.15); z-index: 10; border: 2px solid #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+.wheel-btn .icon { font-size: 24px; margin-bottom: 2px; }
+.wheel-btn .label { text-align: center; line-height: 1.1; }

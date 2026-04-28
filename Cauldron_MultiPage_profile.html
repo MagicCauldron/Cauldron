@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Settings - Pantry Cauldron</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components/navBar.css">
+  <link rel="stylesheet" href="styles/components/userProfile.css">
+  <link rel="stylesheet" href="styles/components/ingredientGrid.css">
+</head>
+<body>
+  <div class="phone">
+    <div class="app-header">
+      <h1>Settings</h1>
+    </div>
+    <div class="scroll-area">
+      <div class="exclusions-section" style="margin-top: 20px;">
+        <h2>Allergens & Exclusions</h2>
+        <p>Selected items will be excluded from the cauldron's magic.</p>
+        
+        <div id="ingredientGrid" class="ingredient-grid exclusion-mode"></div>
+      </div>
+      
+      <div style="padding: 20px;">
+        <button onclick="logout()" style="width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #ff4444; color: #ff4444; background: none; font-weight: 700;">Sign Out</button>
+      </div>
+    </div>
+    <div id="bottomNav" class="bottom-nav"></div>
+  </div>
+  <script type="module">
+    import { initNavBar } from './js/components/navBar.js';
+    import { initIngredientGrid } from './js/components/ingredientGrid.js';
+    import { authService } from './js/services/authService.js';
+
+    window.logout = () => {
+      authService.logout();
+      window.location.href = 'index.html';
+    };
+
+    initNavBar();
+    // Reuse the grid but filter for common allergens
+    initIngredientGrid('Meat'); // Placeholder
+  </script>
+</body>
+</html>

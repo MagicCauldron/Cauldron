@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Shopping List - Pantry Cauldron</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components/navBar.css">
+</head>
+<body>
+  <div class="phone">
+    <div class="app-header">
+      <h1>Shopping List</h1>
+      <button class="icon-btn">➕</button>
+    </div>
+    <div class="scroll-area" style="padding: 24px;">
+      <div style="background: #f9f9f9; padding: 20px; border-radius: 20px; border: 2px dashed #ddd; text-align: center; color: #999;">
+        <span style="font-size: 40px; display: block; margin-bottom: 10px;">🛒</span>
+        Your shopping list is empty. Items missing from your pantry will appear here.
+      </div>
+    </div>
+    <div id="bottomNav" class="bottom-nav"></div>
+  </div>
+  <script type="module">
+    import { initNavBar } from './js/components/navBar.js';
+    initNavBar();
+  </script>
+</body>
+</html>
