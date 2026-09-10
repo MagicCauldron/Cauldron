@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS public.pantry_items (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
+    barcode TEXT,
+    image_url TEXT,
     category TEXT DEFAULT 'Other',
     quantity NUMERIC DEFAULT 1,
     unit TEXT DEFAULT 'piece',

@@ -216,6 +216,41 @@ html,body{
 .add-qty{width:80px}
 .add-btn{flex:1;border:none;border-radius:12px;color:white;font-weight:800;font-size:14px;font-family:var(--font);cursor:pointer;padding:10px 0;transition:filter .15s,transform .1s}
 .add-btn:hover{filter:brightness(1.08)}
+/* Secondary action, so the barcode row never outshouts the Add button. */
+.add-btn-alt{flex:0 0 96px;background:transparent;border:2px solid var(--orange);color:var(--orange)}
+.add-btn-alt:disabled{opacity:.55;cursor:default}
+#scan-btn{flex:0 0 52px;font-size:18px;padding:8px 0}
+.pill-photo{width:20px;height:20px;border-radius:50%;object-fit:cover;background:#eee}
+.pill-count{font-weight:800;color:var(--orange)}
+
+/* Category editor. Same trick as the camera sheet: it lives inside the phone
+   frame, and needs [hidden] restated because the display rule outranks it. */
+.cat-sheet{position:absolute;inset:0;z-index:55;background:var(--cream);display:flex;flex-direction:column;padding:20px 16px}
+.cat-sheet[hidden]{display:none}
+.cat-sheet-head{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:18px;color:var(--dark);margin-bottom:14px}
+.cat-sheet-done{border:none;background:var(--orange);color:white;font-family:var(--font);font-weight:800;font-size:13px;border-radius:999px;padding:8px 20px;cursor:pointer}
+.cat-sheet-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.cat-row{display:flex;align-items:center;gap:8px;background:white;border-radius:12px;padding:8px 10px}
+.cat-row-swatch{width:14px;height:14px;border-radius:50%;flex:0 0 14px}
+.cat-row-emoji{width:34px;text-align:center;border:none;background:#f4f4f4;border-radius:8px;font-size:16px;padding:6px 0;font-family:var(--font)}
+.cat-row-label{flex:1;border:none;background:transparent;font-family:var(--font);font-size:14px;font-weight:700;color:var(--dark);min-width:0}
+.cat-row-del{border:none;background:transparent;font-size:15px;cursor:pointer;padding:4px 6px;opacity:.6}
+.cat-row-del:hover{opacity:1}
+.cat-row-count{font-size:11px;color:#999;font-weight:700}
+.cat-sheet-add{display:flex;gap:8px;padding-top:12px}
+.cat-emoji-input{flex:0 0 56px;text-align:center}
+.cat-sheet-add .add-btn{flex:0 0 84px;background:var(--orange)}
+
+/* Camera sheet. It sits inside the phone frame so the preview keeps the
+   device shape rather than covering the whole desktop page. */
+.scanner-sheet{position:absolute;inset:0;z-index:60;background:#000;display:flex;align-items:center;justify-content:center}
+/* display:flex above outranks the browser's own [hidden] rule, so the sheet
+   needs to be told to stay shut explicitly. */
+.scanner-sheet[hidden]{display:none}
+.scanner-video{width:100%;height:100%;object-fit:cover}
+.scanner-frame{position:absolute;width:74%;height:132px;border:3px solid rgba(255,255,255,.9);border-radius:16px;box-shadow:0 0 0 2000px rgba(0,0,0,.45)}
+.scanner-hint{position:absolute;bottom:132px;left:0;right:0;text-align:center;color:white;font-size:13px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.8);padding:0 24px}
+.scanner-close{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);border:none;border-radius:999px;padding:12px 34px;background:white;color:var(--dark);font-family:var(--font);font-weight:800;font-size:14px;cursor:pointer}
 
 /* Loading */
 .loading-box{text-align:center;padding:24px 20px}
@@ -311,6 +346,9 @@ html,body{
       <div class="menu-email" id="menu-email"></div>
       <button class="menu-btn" onclick="closeMenu()">✏️ &nbsp;Edit Profile</button>
       <button class="menu-btn" onclick="closeMenu()">⚙️ &nbsp;Allergies & Diet</button>
+      <button class="menu-btn" onclick="openCategories()">🎨 &nbsp;Edit Categories</button>
+      <button class="menu-btn" onclick="exportBackup()">⬇️ &nbsp;Download Backup</button>
+      <button class="menu-btn" onclick="pickBackup()">⬆️ &nbsp;Restore Backup</button>
       <button class="menu-btn danger" onclick="signOut()">🚪 &nbsp;Sign Out</button>
     </div>
 
@@ -349,6 +387,11 @@ html,body{
 
       <div class="add-card anim-5">
         <div class="add-card-title">➕ Add to Pantry</div>
+        <div class="add-row">
+          <input class="add-input" id="item-barcode" placeholder="Barcode" inputmode="numeric"/>
+          <button class="add-btn add-btn-alt" id="scan-btn" onclick="openScanner()" title="Scan with the camera">📷</button>
+          <button class="add-btn add-btn-alt" id="lookup-btn" onclick="lookupBarcode()">Look up</button>
+        </div>
         <input class="add-input" id="item-name" placeholder="Item name (e.g. Strawberries)"/>
         <div class="add-row">
           <input class="add-input add-qty" id="item-qty" placeholder="Qty" type="number" value="1"/>
@@ -377,6 +420,28 @@ html,body{
     </div>
   </div><!-- /app-screen -->
 
+  <div class="cat-sheet" id="cat-sheet" hidden>
+    <div class="cat-sheet-head">
+      <span>Categories</span>
+      <button class="cat-sheet-done" onclick="closeCategories()">Done</button>
+    </div>
+    <div class="cat-sheet-list" id="cat-sheet-list"></div>
+    <div class="cat-sheet-add">
+      <input class="add-input cat-emoji-input" id="new-cat-emoji" value="🧺" maxlength="4"/>
+      <input class="add-input" id="new-cat-label" placeholder="New category"/>
+      <button class="add-btn" id="new-cat-btn" onclick="addCategory()">Add</button>
+    </div>
+  </div>
+
+  <input type="file" id="backup-file" accept="application/json,.json" hidden onchange="importBackup(event)"/>
+
+  <div class="scanner-sheet" id="scanner-sheet" hidden>
+    <video class="scanner-video" id="scanner-video" playsinline muted></video>
+    <div class="scanner-frame"></div>
+    <div class="scanner-hint" id="scanner-hint">Point the camera at a barcode</div>
+    <button class="scanner-close" onclick="closeScanner()">Cancel</button>
+  </div>
+
   <div id="toast"></div>
 </div><!-- /phone -->
 
@@ -387,15 +452,27 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const CATEGORIES = [
-  { label:'Fruits',       emoji:'🍎', color:'#F5C842', startDeg:-90, endDeg:-30 },
-  { label:'Dairy & Fish', emoji:'🐟', color:'#4BAEE8', startDeg:-30, endDeg: 30 },
-  { label:'Spices',       emoji:'🌶️', color:'#F4883E', startDeg: 30, endDeg: 90 },
-  { label:'Essentials',   emoji:'🥫', color:'#A07850', startDeg: 90, endDeg:150 },
-  { label:'Other',        emoji:'🧴', color:'#9B6EC8', startDeg:150, endDeg:210 },
-  { label:'Vegetables',   emoji:'🥦', color:'#52B356', startDeg:210, endDeg:270 },
-  { label:'Meat',         emoji:'🥩', color:'#E05252', startDeg:270, endDeg:330 },
+// What a brand new pantry starts with. Once a user edits their categories the
+// list comes from the database instead, so nothing here is fixed.
+//
+// The wedge angles that used to live on each entry are gone. Seven wedges of
+// sixty degrees came to four hundred and twenty, so the last one wrapped onto
+// the first and hid it. The wheel now divides the circle by however many
+// categories there are, which is also what makes adding one a row rather than
+// a code change.
+const DEFAULT_CATEGORIES = [
+  { label:'Fruits',       emoji:'🍎', color:'#F5C842' },
+  { label:'Dairy & Fish', emoji:'🐟', color:'#4BAEE8' },
+  { label:'Spices',       emoji:'🌶️', color:'#F4883E' },
+  { label:'Essentials',   emoji:'🥫', color:'#A07850' },
+  { label:'Other',        emoji:'🧴', color:'#9B6EC8' },
+  { label:'Vegetables',   emoji:'🥦', color:'#52B356' },
+  { label:'Meat',         emoji:'🥩', color:'#E05252' },
 ];
+// The colours offered when someone adds a category of their own.
+const CATEGORY_COLORS = ['#F5C842','#4BAEE8','#F4883E','#A07850','#9B6EC8','#52B356','#E05252','#E86FA8','#3FBFA8'];
+
+let categories = DEFAULT_CATEGORIES.map(c=>({...c}));
 const EMOJI = {
   'Red Apples':'🍎','Green Apples':'🍏','Lemons':'🍋','Bananas':'🍌',
   'Oranges':'🍊','Grapes':'🍇','Cherry Tomatoes':'🍅','Pears':'🍐',
@@ -531,7 +608,7 @@ function onSignedIn(user){
     wrap.innerHTML=`<div class="user-initials" onclick="toggleMenu(event)">${initials}</div>`;
   }
 
-  loadPantry();
+  loadCategories().then(loadPantry);
 }
 
 // ── User menu ─────────────────────────────────────────────────────────────────
@@ -592,28 +669,523 @@ async function loadPantry(){
   renderAll(); checkExpiry();
 }
 
+// ── Shelf life ────────────────────────────────────────────────────────────────
+// Everything added by hand used to be stamped with seven days, which meant a
+// bag of rice was flagged as spoiling in the same week as a punnet of berries
+// and the expiry warnings were worth ignoring. Category gives a rough answer,
+// and a handful of names that keep far longer or shorter override it.
+const SHELF_LIFE_BY_CATEGORY = {
+  'Fruits':7, 'Vegetables':7, 'Dairy & Fish':4, 'Meat':3,
+  'Spices':730, 'Essentials':365, 'Other':30,
+};
+const SHELF_LIFE_BY_NAME = [
+  // Bread sits with the shelf-stable staples in the food taxonomy but goes
+  // stale in days, so it is checked before them.
+  [/bread|loaf|baguette|\bpain\b/i, 5],
+  [/rice|pasta|flour|sugar|lentil|bean|oat|honey|salt/i, 365],
+  [/canned|tinned|jar\b/i, 730],
+  [/frozen/i, 180],
+  [/egg/i, 21],
+  [/apple|orange|lemon|lime|carrot|potato|onion|cabbage|beet/i, 21],
+  [/milk|yog(h)?urt|cream/i, 7],
+  [/banana|berr|avocado|spinach|lettuce|basil|coriander|parsley|mushroom/i, 4],
+];
+
+function shelfLifeFor(name, category){
+  for(const [pattern, days] of SHELF_LIFE_BY_NAME){
+    if(pattern.test(name)) return days;
+  }
+  return SHELF_LIFE_BY_CATEGORY[category] ?? 30;
+}
+
+// ── Barcode lookup ────────────────────────────────────────────────────────────
+// Open Food Facts is free, needs no key and has no daily quota, so this runs
+// straight from the browser rather than through an edge function.
+// Order matters: the first pattern to match wins. Two traps are worth naming.
+// Potatoes are absent from the vegetable line because Open Food Facts files
+// them under "cereals-and-potatoes", which would drag every packet of pasta
+// into the vegetable slice. Drinks are tested before fruit for the same
+// reason: orange juice is shelf-stable and belongs with the staples, not with
+// the fruit that spoils in a week.
+const OFF_CATEGORY_MAP = [
+  [/meat|poultry|chicken|beef|pork|sausage|ham\b|charcuterie/i, 'Meat'],
+  [/dairy|milk|cheese|yogh?urt|butter|fish|seafood|egg/i, 'Dairy & Fish'],
+  [/beverage|drink|soda|juice|coffee|tea\b|water/i, 'Essentials'],
+  [/fruit|berries/i, 'Fruits'],
+  [/vegetable|legume|salad|mushroom/i, 'Vegetables'],
+  [/spice|condiment|sauce|herb|seasoning|vinegar|mustard/i, 'Spices'],
+  [/cereal|pasta|rice|noodle|flour|bread|biscuit|cake|snack|sweet|chocolate|spread|jam|honey|nut|seed|oil|sugar|canned|preserve|flakes/i, 'Essentials'],
+];
+
+// Anything the taxonomy does not place lands in the app's own catch-all rather
+// than leaving the wheel wherever the user happened to be looking, which used
+// to file a jar of spread under whichever slice was open at the time.
+function categoryFromTags(tags){
+  const joined=(tags||[]).join(' ');
+  for(const [pattern, category] of OFF_CATEGORY_MAP){
+    if(pattern.test(joined)) return category;
+  }
+  return 'Other';
+}
+
+// What the last lookup found, so addItem can store the barcode and picture
+// alongside the name. Cleared whenever the name is typed by hand.
+let pendingProduct=null;
+
+// EAN-8 through EAN-13 and UPC-A all land in this range. Anything else is a
+// typo, and asking Open Food Facts about it only wastes a round trip.
+function validBarcode(code){ return /^\d{8,13}$/.test(code); }
+
+async function lookupBarcode(){
+  const input=document.getElementById('item-barcode');
+  const btn=document.getElementById('lookup-btn');
+  const code=input.value.replace(/\D/g,'');
+  if(!code){ input.focus(); return; }
+  if(!validBarcode(code)){
+    toast('🔢 A barcode is 8 to 13 digits.');
+    input.focus(); return;
+  }
+
+  // A product already in the pantry does not need looking up again: the point
+  // of scanning a second tin is that you bought a second tin.
+  const known=pantry.find(i=>i.barcode===code);
+  if(known){
+    bumpQuantity(known);
+    input.value='';
+    return;
+  }
+
+  btn.disabled=true; btn.textContent='...';
+  try{
+    const url='https://world.openfoodfacts.org/api/v2/product/'+code
+      +'.json?fields=product_name,brands,categories_tags,image_small_url';
+    const res=await fetch(url);
+    const data=await res.json();
+
+    if(data.status!==1 || !data.product){
+      toast('🤷 No product with that barcode. Type the name instead.');
+      return;
+    }
+
+    const p=data.product;
+    const name=(p.product_name||'').trim();
+    if(!name){
+      toast('🤷 That barcode has no name on file yet.');
+      return;
+    }
+
+    document.getElementById('item-name').value=name;
+    pendingProduct={name, barcode:code, image_url:p.image_small_url||null};
+
+    // Jump the wheel to whatever the product actually is, so the item lands in
+    // the right slice instead of wherever the user happened to be looking.
+    const category=categoryFromTags(p.categories_tags);
+    if(category && category!==selectedCat){
+      selectedCat=category;
+      renderAll();
+    }
+
+    input.value='';
+    toast('🔍 '+name);
+  } catch {
+    toast('⚠️ Could not reach the product database.');
+  } finally {
+    btn.disabled=false; btn.textContent='Look up';
+  }
+}
+
+// ── Camera scanning ───────────────────────────────────────────────────────────
+// Chrome on Android decodes barcodes natively through BarcodeDetector, so there
+// is no scanning library to ship. Safari has no such thing, and rather than
+// pull in a decoder that cannot be tested here, the button says so and the
+// typed field still works.
+let scanStream=null, scanTimer=null;
+
+async function openScanner(){
+  if(!('BarcodeDetector' in window)){
+    toast('📷 This browser cannot scan. Type the number instead.');
+    document.getElementById('item-barcode').focus();
+    return;
+  }
+
+  const sheet=document.getElementById('scanner-sheet');
+  const video=document.getElementById('scanner-video');
+  try{
+    scanStream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'}},
+      audio:false,
+    });
+  } catch {
+    toast('📷 No camera access. Type the number instead.');
+    return;
+  }
+
+  video.srcObject=scanStream;
+  sheet.hidden=false;
+  await video.play();
+
+  const detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128']});
+  scanTimer=setInterval(async()=>{
+    try{
+      const found=await detector.detect(video);
+      const hit=found.find(b=>validBarcode((b.rawValue||'').replace(/\D/g,'')));
+      if(!hit) return;
+      const code=hit.rawValue.replace(/\D/g,'');
+      closeScanner();
+      document.getElementById('item-barcode').value=code;
+      lookupBarcode();
+    } catch {
+      // A frame that will not decode is the normal case, not an error.
+    }
+  }, 350);
+}
+
+function closeScanner(){
+  if(scanTimer){ clearInterval(scanTimer); scanTimer=null; }
+  if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
+  const video=document.getElementById('scanner-video');
+  video.srcObject=null;
+  document.getElementById('scanner-sheet').hidden=true;
+}
+
+// Buying the same thing twice should raise the count, not fill the pantry with
+// duplicate rows.
+async function bumpQuantity(item){
+  const next=(Number(item.quantity)||1)+1;
+  item.quantity=next;
+  if(!currentUser._isDemo && item.id){
+    const {error}=await sb.from('pantry_items').update({quantity:next}).eq('id',item.id);
+    if(error){ toast('❌ '+error.message); return; }
+  }
+  toast('➕ '+item.name+' × '+next);
+  renderPantry();
+}
+
 async function addItem(){
   const name=document.getElementById('item-name').value.trim();
   const qty=parseInt(document.getElementById('item-qty').value)||1;
   if(!name){document.getElementById('item-name').focus();return;}
+  const shelfLife=shelfLifeFor(name, selectedCat);
+  // Only carry the scanned details across if the name still belongs to them.
+  const scanned=(pendingProduct && pendingProduct.name===name) ? pendingProduct : null;
   const row={user_id:currentUser.id,name,category:selectedCat,
-    quantity:qty,unit:'piece',shelf_life_days:7,
+    quantity:qty,unit:'piece',shelf_life_days:shelfLife,
+    barcode:scanned?scanned.barcode:null,
+    image_url:scanned?scanned.image_url:null,
     added_date:new Date().toISOString()};
 
-  if(currentUser._isDemo){
-    row._daysLeft=7; pantry.unshift(row);
+  const clearForm=()=>{
     document.getElementById('item-name').value='';
     document.getElementById('item-qty').value='1';
+    pendingProduct=null;
+  };
+
+  if(currentUser._isDemo){
+    row._daysLeft=shelfLife; pantry.unshift(row);
+    clearForm();
     toast('✅ '+name+' added!'); renderPantry(); return;
   }
 
   const {data,error}=await sb.from('pantry_items').insert([row]).select();
   if(error){toast('❌ '+error.message);return;}
-  const saved=data?.[0]||row; saved._daysLeft=7;
+  const saved=data?.[0]||row; saved._daysLeft=shelfLife;
   pantry.unshift(saved);
-  document.getElementById('item-name').value='';
-  document.getElementById('item-qty').value='1';
+  clearForm();
   toast('✅ '+name+' added!'); renderPantry();
+}
+
+// ── Categories ────────────────────────────────────────────────────────────────
+// Demo mode never touches the database, so every helper here checks for it
+// before writing and simply keeps the change in memory instead.
+
+async function loadCategories(){
+  if(currentUser._isDemo){
+    categories=DEFAULT_CATEGORIES.map(c=>({...c}));
+    return;
+  }
+  const {data,error}=await sb.from('categories').select('*')
+    .eq('user_id',currentUser.id).order('position',{ascending:true});
+
+  // A missing table or a blocked read should not leave the user staring at an
+  // empty wheel, so fall back to the defaults without saving them.
+  if(error){ categories=DEFAULT_CATEGORIES.map(c=>({...c})); return; }
+  if(!data.length){ await seedCategories(); return; }
+  categories=data.map(r=>({id:r.id,label:r.label,emoji:r.emoji,color:r.color}));
+}
+
+async function seedCategories(){
+  const rows=DEFAULT_CATEGORIES.map((c,i)=>({
+    user_id:currentUser.id, label:c.label, emoji:c.emoji, color:c.color, position:i,
+  }));
+  const {data,error}=await sb.from('categories').insert(rows).select();
+  categories=(error||!data)
+    ? DEFAULT_CATEGORIES.map(c=>({...c}))
+    : data.map(r=>({id:r.id,label:r.label,emoji:r.emoji,color:r.color}));
+}
+
+function openCategories(){
+  closeMenu();
+  renderCategorySheet();
+  document.getElementById('cat-sheet').hidden=false;
+}
+
+function closeCategories(){
+  document.getElementById('cat-sheet').hidden=true;
+  renderAll();
+}
+
+// Labels are whatever the user typed, so they never go into markup unescaped.
+function attr(value){
+  return String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+function renderCategorySheet(){
+  const list=document.getElementById('cat-sheet-list');
+  list.innerHTML='';
+  categories.forEach(cat=>{
+    const used=pantry.filter(i=>i.category===cat.label).length;
+    const row=document.createElement('div');
+    row.className='cat-row';
+    row.innerHTML=`
+      <span class="cat-row-swatch" style="background:${attr(cat.color)}"></span>
+      <input class="cat-row-emoji" value="${attr(cat.emoji)}" maxlength="4"/>
+      <input class="cat-row-label" value="${attr(cat.label)}"/>
+      <span class="cat-row-count">${used?used+' items':''}</span>
+      <button class="cat-row-del" title="Delete">🗑️</button>`;
+
+    const [emojiInput,labelInput]=row.querySelectorAll('input');
+    emojiInput.onchange=()=>updateCategory(cat,{emoji:emojiInput.value.trim()||'🧺'});
+    labelInput.onchange=()=>renameCategory(cat,labelInput.value.trim(),labelInput);
+    row.querySelector('.cat-row-del').onclick=()=>deleteCategory(cat);
+    list.appendChild(row);
+  });
+}
+
+async function updateCategory(cat,patch){
+  Object.assign(cat,patch);
+  if(!currentUser._isDemo && cat.id){
+    const {error}=await sb.from('categories').update(patch).eq('id',cat.id);
+    if(error){ toast('❌ '+error.message); return; }
+  }
+  renderCategorySheet();
+}
+
+// Renaming has to carry the items with it, because a pantry row stores the
+// category by name rather than by id.
+async function renameCategory(cat,next,input){
+  if(!next || next===cat.label){ input.value=cat.label; return; }
+  if(categories.some(c=>c!==cat && c.label.toLowerCase()===next.toLowerCase())){
+    toast('⚠️ You already have a category called that.');
+    input.value=cat.label; return;
+  }
+
+  const previous=cat.label;
+  const moving=pantry.filter(i=>i.category===previous);
+
+  if(!currentUser._isDemo){
+    if(cat.id){
+      const {error}=await sb.from('categories').update({label:next}).eq('id',cat.id);
+      if(error){ toast('❌ '+error.message); input.value=previous; return; }
+    }
+    if(moving.length){
+      const {error}=await sb.from('pantry_items').update({category:next})
+        .eq('user_id',currentUser.id).eq('category',previous);
+      if(error){ toast('❌ '+error.message); return; }
+    }
+  }
+
+  cat.label=next;
+  moving.forEach(i=>{ i.category=next; });
+  if(selectedCat===previous) selectedCat=next;
+  toast('✏️ Renamed to '+next);
+  renderCategorySheet();
+}
+
+async function addCategory(){
+  const labelInput=document.getElementById('new-cat-label');
+  const emojiInput=document.getElementById('new-cat-emoji');
+  const label=labelInput.value.trim();
+  if(!label){ labelInput.focus(); return; }
+  if(categories.some(c=>c.label.toLowerCase()===label.toLowerCase())){
+    toast('⚠️ You already have a category called that.');
+    return;
+  }
+
+  const cat={
+    label,
+    emoji:emojiInput.value.trim()||'🧺',
+    color:CATEGORY_COLORS[categories.length%CATEGORY_COLORS.length],
+  };
+
+  if(!currentUser._isDemo){
+    const {data,error}=await sb.from('categories').insert([{
+      user_id:currentUser.id, label:cat.label, emoji:cat.emoji,
+      color:cat.color, position:categories.length,
+    }]).select();
+    if(error){ toast('❌ '+error.message); return; }
+    if(data && data[0]) cat.id=data[0].id;
+  }
+
+  categories.push(cat);
+  labelInput.value=''; emojiInput.value='🧺';
+  toast('🎨 '+label+' added');
+  renderCategorySheet();
+}
+
+async function deleteCategory(cat){
+  if(categories.length<2){
+    toast('⚠️ Keep at least one category.');
+    return;
+  }
+  const orphans=pantry.filter(i=>i.category===cat.label);
+  // Items outlive their category. They land in Other when it exists, and in
+  // whatever is left over when it does not, so nothing is ever deleted by
+  // tidying up the wheel.
+  const fallback=categories.find(c=>c!==cat && c.label==='Other')
+    || categories.find(c=>c!==cat);
+
+  const warning=orphans.length
+    ? `Delete "${cat.label}"?\n\n${orphans.length} item(s) will move to "${fallback.label}".`
+    : `Delete "${cat.label}"?`;
+  if(!confirm(warning)) return;
+
+  if(!currentUser._isDemo){
+    if(orphans.length){
+      const {error}=await sb.from('pantry_items').update({category:fallback.label})
+        .eq('user_id',currentUser.id).eq('category',cat.label);
+      if(error){ toast('❌ '+error.message); return; }
+    }
+    if(cat.id){
+      const {error}=await sb.from('categories').delete().eq('id',cat.id);
+      if(error){ toast('❌ '+error.message); return; }
+    }
+  }
+
+  orphans.forEach(i=>{ i.category=fallback.label; });
+  categories=categories.filter(c=>c!==cat);
+  if(selectedCat===cat.label) selectedCat=fallback.label;
+  toast('🗑️ '+cat.label+' deleted');
+  renderCategorySheet();
+}
+
+// ── Backup ────────────────────────────────────────────────────────────────────
+// A pantry is weeks of typing. The download is plain JSON so it can be read,
+// edited or moved to another account without this app's help.
+const BACKUP_VERSION = 1;
+
+function exportBackup(){
+  closeMenu();
+  const backup={
+    app:'pantry-cauldron',
+    version:BACKUP_VERSION,
+    exported_at:new Date().toISOString(),
+    categories:categories.map(({label,emoji,color})=>({label,emoji,color})),
+    items:pantry.map(({name,category,quantity,unit,shelf_life_days,added_date,barcode,image_url})=>
+      ({name,category,quantity,unit,shelf_life_days,added_date,barcode,image_url})),
+  };
+
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='pantry-cauldron-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('⬇️ Backup saved ('+backup.items.length+' items)');
+}
+
+function pickBackup(){
+  closeMenu();
+  document.getElementById('backup-file').click();
+}
+
+async function importBackup(event){
+  const file=event.target.files && event.target.files[0];
+  event.target.value='';
+  if(!file) return;
+
+  let backup;
+  try{
+    backup=JSON.parse(await file.text());
+  } catch {
+    toast('⚠️ That file is not readable JSON.');
+    return;
+  }
+
+  if(backup.app!=='pantry-cauldron' || !Array.isArray(backup.items)){
+    toast('⚠️ That is not a Pantry Cauldron backup.');
+    return;
+  }
+  if(backup.version>BACKUP_VERSION){
+    toast('⚠️ That backup came from a newer version.');
+    return;
+  }
+
+  if(!confirm(`Restore ${backup.items.length} item(s)?\n\nThis replaces everything in your pantry.`)) return;
+
+  const items=backup.items
+    .filter(i=>i && typeof i.name==='string' && i.name.trim())
+    .map(i=>({
+      user_id:currentUser.id,
+      name:String(i.name).slice(0,120),
+      category:typeof i.category==='string'?i.category:'Other',
+      quantity:Number(i.quantity)||1,
+      unit:typeof i.unit==='string'?i.unit:'piece',
+      shelf_life_days:Number(i.shelf_life_days)||shelfLifeFor(i.name,i.category||'Other'),
+      barcode:typeof i.barcode==='string'?i.barcode:null,
+      image_url:typeof i.image_url==='string'?i.image_url:null,
+      added_date:typeof i.added_date==='string'?i.added_date:new Date().toISOString(),
+    }));
+
+  if(Array.isArray(backup.categories) && backup.categories.length){
+    await replaceCategories(backup.categories);
+  }
+
+  if(currentUser._isDemo){
+    pantry=items;
+  } else {
+    const {error:wipeError}=await sb.from('pantry_items').delete().eq('user_id',currentUser.id);
+    if(wipeError){ toast('❌ '+wipeError.message); return; }
+    if(items.length){
+      const {data,error}=await sb.from('pantry_items').insert(items).select();
+      if(error){ toast('❌ '+error.message); return; }
+      pantry=data||items;
+    } else {
+      pantry=[];
+    }
+  }
+
+  pantry.forEach(item=>{
+    if(item.added_date&&item.shelf_life_days){
+      const exp=new Date(item.added_date).getTime()+item.shelf_life_days*86400000;
+      item._daysLeft=Math.ceil((exp-Date.now())/86400000);
+    }
+  });
+
+  if(!categories.some(c=>c.label===selectedCat) && categories.length) selectedCat=categories[0].label;
+  toast('⬆️ Restored '+pantry.length+' items');
+  renderAll(); checkExpiry();
+}
+
+async function replaceCategories(incoming){
+  const clean=incoming
+    .filter(c=>c && typeof c.label==='string' && c.label.trim())
+    .map((c,i)=>({
+      label:String(c.label).slice(0,50),
+      emoji:typeof c.emoji==='string'&&c.emoji?c.emoji:'🧺',
+      color:/^#[0-9a-f]{6}$/i.test(c.color||'')?c.color:CATEGORY_COLORS[i%CATEGORY_COLORS.length],
+    }));
+  if(!clean.length) return;
+
+  if(currentUser._isDemo){ categories=clean; return; }
+
+  const {error:wipeError}=await sb.from('categories').delete().eq('user_id',currentUser.id);
+  if(wipeError){ toast('❌ '+wipeError.message); return; }
+
+  const {data,error}=await sb.from('categories').insert(
+    clean.map((c,i)=>({user_id:currentUser.id, ...c, position:i}))
+  ).select();
+  categories=(error||!data) ? clean : data.map(r=>({id:r.id,label:r.label,emoji:r.emoji,color:r.color}));
 }
 
 // ── Expiry ────────────────────────────────────────────────────────────────────
@@ -633,7 +1205,9 @@ function checkExpiry(){
 }
 
 // ── Cauldron ──────────────────────────────────────────────────────────────────
-const SPOONACULAR_KEY = '45ad654126f544a6b6d74230b8d281b1';
+// The Spoonacular key is deliberately not here. It lives in this project's
+// secrets and is read by the get-recipes edge function, so it never ships to
+// the browser. See supabase/functions/get-recipes/index.ts.
 
 async function triggerCauldron(){
   const el=document.getElementById('cauldron');
@@ -646,16 +1220,28 @@ async function triggerCauldron(){
   try {
     // Build ingredient list from pantry
     const ingredients = pantry.map(i=>i.name).join(',+');
-    const url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredients)}&number=5&ranking=1&ignorePantry=true&apiKey=${SPOONACULAR_KEY}`;
-    const res  = await fetch(url);
-    const data = await res.json();
+    const {data, error} = await sb.functions.invoke('get-recipes', {
+      body: { ingredients },
+    });
 
-    if(!data || data.status === 'failure' || !data.length){
+    if(error){
+      toast('⚠️ Could not reach recipe API. Check your connection.');
+      stopBubbling(); return;
+    }
+
+    // The function reports its own failures in the payload so the app can
+    // say what actually went wrong instead of blaming the connection.
+    if(!data || !data.ok){
+      toast('⚠️ ' + (data && data.message ? data.message : 'Something went wrong.'));
+      stopBubbling(); return;
+    }
+
+    if(!data.recipes.length){
       toast('⚠️ No recipes found — try adding more ingredients!');
       stopBubbling(); return;
     }
 
-    const recipes = data.map(r=>({
+    const recipes = data.recipes.map(r=>({
       id:    r.id,
       title: r.title,
       img:   r.image,
@@ -729,14 +1315,17 @@ function mid(s,e){return polar((OR+IR)/2,(s+e)/2)}
 
 function drawWheel(){
   const svg=document.getElementById('wheel-svg'); svg.innerHTML='';
-  CATEGORIES.forEach(cat=>{
+  // One full turn shared out evenly, whatever the count, starting at the top.
+  const span=360/Math.max(categories.length,1);
+  categories.forEach((cat,i)=>{
+    const startDeg=-90+i*span, endDeg=startDeg+span;
     const on=cat.label===selectedCat,g=document.createElementNS(NS,'g');
     const p=document.createElementNS(NS,'path');
-    p.setAttribute('d',arc(cat.startDeg,cat.endDeg));
+    p.setAttribute('d',arc(startDeg,endDeg));
     p.setAttribute('fill',cat.color); p.setAttribute('opacity',on?'1':'0.78');
     p.setAttribute('stroke','white'); p.setAttribute('stroke-width',on?'3':'1.5');
     p.setAttribute('class','arc-path'+(on?' active':''));
-    const[lx,ly]=mid(cat.startDeg,cat.endDeg);
+    const[lx,ly]=mid(startDeg,endDeg);
     const te=document.createElementNS(NS,'text');
     te.setAttribute('x',lx);te.setAttribute('y',ly-11);
     te.setAttribute('text-anchor','middle');te.setAttribute('dominant-baseline','middle');
@@ -759,7 +1348,7 @@ function drawWheel(){
 
 function renderStrip(){
   const el=document.getElementById('cat-strip'); el.innerHTML='';
-  CATEGORIES.forEach(cat=>{
+  categories.forEach(cat=>{
     const b=document.createElement('button');
     b.className='cat-chip'+(cat.label===selectedCat?' active':'');
     b.style.background=cat.color; b.textContent=cat.emoji+' '+cat.label;
@@ -774,7 +1363,11 @@ function showSkeletons(){
 }
 
 function renderPantry(){
-  const cat=CATEGORIES.find(c=>c.label===selectedCat);
+  // A category can be renamed or removed out from under the selection, so fall
+  // back to the first one rather than reading colour off undefined.
+  let cat=categories.find(c=>c.label===selectedCat);
+  if(!cat && categories.length){ cat=categories[0]; selectedCat=cat.label; }
+  if(!cat) return;
   document.getElementById('cat-bar').style.background=cat.color;
   document.getElementById('add-btn').style.background=cat.color;
   document.getElementById('cat-title').textContent=selectedCat;
@@ -787,7 +1380,12 @@ function renderPantry(){
   items.forEach(item=>{
     const d=document.createElement('div'); d.className='pill';
     if(item._daysLeft!==undefined&&item._daysLeft<=2) d.style.borderColor='#FFCCCC';
-    d.innerHTML=`<span>${EMOJI[item.name]||'🧺'}</span><span>${item.name}</span><span class="pill-check">✓</span>`;
+    // A scanned product brings its own photo, which beats a guessed emoji.
+    const icon=item.image_url
+      ? `<img class="pill-photo" src="${item.image_url}" alt="" loading="lazy"/>`
+      : `<span>${EMOJI[item.name]||'🧺'}</span>`;
+    const count=(Number(item.quantity)||1)>1?` <span class="pill-count">×${item.quantity}</span>`:'';
+    d.innerHTML=`${icon}<span>${item.name}</span>${count}<span class="pill-check">✓</span>`;
     grid.appendChild(d);
   });
 }
@@ -799,6 +1397,7 @@ function setTab(el){
 function renderAll(){drawWheel();renderStrip();renderPantry();}
 
 document.getElementById('item-name').addEventListener('keydown',e=>{if(e.key==='Enter')addItem();});
+document.getElementById('item-barcode').addEventListener('keydown',e=>{if(e.key==='Enter')lookupBarcode();});
 document.getElementById('auth-password').addEventListener('keydown',e=>{if(e.key==='Enter')signInEmail();});
 
 // ── Boot: check existing session ──────────────────────────────────────────────
